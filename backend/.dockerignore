@@ -11,6 +11,7 @@ storage/framework/sessions
 storage/framework/testing
 storage/framework/views
 storage/logs
+public/storage
 tests
 .editorconfig
 .phpunit.cache

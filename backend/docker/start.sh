@@ -14,11 +14,16 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
+# Fallback: if vendor/ is missing (e.g., bind mount override), install at runtime
+if [ ! -d vendor ]; then
+  echo "vendor/ not found, running composer install..."
+  composer install --no-interaction --prefer-dist --no-dev --no-progress
+fi
+
 if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# vendor/ is already installed at Docker build time
 # Only generate APP_KEY if missing
 if ! grep -q '^APP_KEY=[A-Za-z0-9]' .env 2>/dev/null; then
   php artisan key:generate --force
