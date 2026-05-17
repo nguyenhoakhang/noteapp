@@ -24,6 +24,14 @@ export default function SharedWithMePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Refresh shared notes periodically (every 30s) for reactive updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      api.get("/notes/shared-with-me").then((r) => setShared(r.data)).catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleOpen = (item) => {
     if (item.is_protected && !unlockedIds[item.note_id]) {
       setUnlocking(item);

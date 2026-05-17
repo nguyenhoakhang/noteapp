@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attachment;
 use App\Models\Note;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
@@ -13,6 +14,15 @@ class AttachmentController extends Controller
     public function store(Request $request, Note $note)
     {
         abort_if($note->user_id !== $request->user()->id, 403);
+
+        // ✅ Password-protected notes require unlock for attachment upload
+        if ($note->password) {
+            $cacheKey = "note_pwd_{$note->id}_" . $request->user()->id;
+            $provided = $request->input('note_password');
+            if (!cache()->has($cacheKey) && !Hash::check($provided, $note->password)) {
+                return response()->json(['message' => 'Note password required'], 403);
+            }
+        }
 
         $request->validate([
             'files'   => 'required|array',

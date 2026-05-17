@@ -238,6 +238,14 @@ export default function NotesPage() {
     fetchShared();
   }, []);
 
+  // Periodic refresh for reactive share updates (every 30s)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchShared();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Search / filter — local-first: filter cached notes, only hit API if needed
   useEffect(() => {
     if (!debouncedSearch.trim() && !activeLabel) {

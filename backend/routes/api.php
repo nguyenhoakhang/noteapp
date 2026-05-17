@@ -44,9 +44,6 @@ Route::post('/auth/otp/reset',  [AuthController::class, 'resetWithOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Share management
-    Route::get('/shared-with-me', [ShareController::class, 'sharedWithMe']);
-
     Route::prefix('notes/{note}')->group(function () {
         Route::get('/shares',           [ShareController::class, 'index']);
         Route::post('/shares',          [ShareController::class, 'store']);

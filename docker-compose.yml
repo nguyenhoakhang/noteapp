@@ -34,14 +34,34 @@ services:
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
+      - backend_storage:/var/www/storage
     environment:
       - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=noteapp
+      - DB_USERNAME=noteapp
+      - DB_PASSWORD=noteapp
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+      - MAIL_USERNAME=null
+      - MAIL_PASSWORD=null
+      - MAIL_ENCRYPTION=null
+      - MAIL_FROM_ADDRESS=noteapp@example.com
+      - MAIL_FROM_NAME=NoteApp
     ports:
       - "8000:8000"
-    command: php artisan serve --host=0.0.0.0 --port=8000
     depends_on:
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
       - noteapp
 
@@ -89,6 +109,7 @@ services:
 
 volumes:
   mysql_data:
+  backend_storage:
 
 networks:
   noteapp:

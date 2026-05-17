@@ -186,7 +186,16 @@ export default function NoteEditor({
         showSaveStatus("saved");
         onSave(saved);
         return saved?.id;
-      } catch {
+      } catch (err) {
+        // Handle session expiry — re-lock the editor
+        if (err?.response?.status === 403 && err?.response?.data?.needs_unlock) {
+          setLocked(true);
+          setUnlockedOnce(false);
+          unlockedOnceRef.current = false;
+          notePasswordRef.current = '';
+          toast.error('Session expired. Please unlock again.');
+          return;
+        }
         showSaveStatus("failed");
         toast.error("Save failed");
       } finally {
@@ -219,7 +228,16 @@ export default function NoteEditor({
         showSaveStatus("saved");
         onSave(saved);
         return id;
-      } catch {
+      } catch (err) {
+        // Handle session expiry — re-lock the editor
+        if (err?.response?.status === 403 && err?.response?.data?.needs_unlock) {
+          setLocked(true);
+          setUnlockedOnce(false);
+          unlockedOnceRef.current = false;
+          notePasswordRef.current = '';
+          toast.error('Session expired. Please unlock again.');
+          return;
+        }
         showSaveStatus("failed");
         // Don't clear dirty — retry on next change
         toast.error("Save failed");

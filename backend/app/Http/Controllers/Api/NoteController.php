@@ -192,24 +192,48 @@ class NoteController extends Controller
     // GET /api/notes/shared-with-me
     public function sharedWithMe(Request $request)
     {
-        $shares = \App\Models\NoteShare::where('shared_with_id', $request->user()->id)
-            ->with(['note:user_id,id,title,content_preview,color,is_pinned,pinned_at,password,created_at,updated_at', 'owner:id,name,email'])
+        $userId = $request->user()->id;
+        $shares = \App\Models\NoteShare::where('shared_with_id', $userId)
+            ->with(['note:user_id,id,title,content,content_preview,color,is_pinned,pinned_at,password,created_at,updated_at', 'owner:id,name,email'])
             ->latest()
             ->get()
-            ->map(function ($share) {
+            ->map(function ($share) use ($userId) {
                 $note = $share->note;
-                if ($note && $note->password) {
-                    $note->setAttribute('is_protected', true);
+                if (!$note) return null;
+                
+                $isProtected = (bool) $note->password;
+                $isVerified = false;
+                
+                if ($isProtected) {
+                    // Check if password was verified via cache
+                    $cacheKey = "note_pwd_{$note->id}_{$userId}";
+                    $isVerified = cache()->has($cacheKey);
                 }
-                $note?->makeHidden(['password']);
+                
+                // Only include full content if not protected OR if verified
+                $content = null;
+                if (!$isProtected || $isVerified) {
+                    $content = $note->content;
+                }
+                
                 return [
-                    'share_id'   => $share->id,
-                    'permission' => $share->permission,
-                    'shared_at'  => $share->created_at,
-                    'shared_by'  => $share->owner->only('id', 'name', 'email'),
-                    'note'       => $note,
+                    'share_id'       => $share->id,
+                    'note_id'        => $note->id,
+                    'title'          => $note->title,
+                    'content'        => $content,
+                    'content_preview'=> $note->content_preview,
+                    'color'          => $note->color,
+                    'is_pinned'      => (bool) $note->is_pinned,
+                    'pinned_at'      => $note->pinned_at,
+                    'is_protected'   => $isProtected,
+                    'permission'     => $share->permission,
+                    'shared_at'      => $share->created_at,
+                    'shared_by'      => $share->owner->only('id', 'name', 'email'),
+                    'note_updated'   => $note->updated_at,
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         return response()->json($shares);
     }
@@ -261,6 +285,9 @@ class NoteController extends Controller
     private function checkNotePassword(Request $request, Note $note)
     {
         if (!$note->password) return null;
+        
+        // ✅ OWNERS NEVER NEED PASSWORD — they own the note
+        if ($note->user_id === $request->user()->id) return null;
         
         // Check if password was previously verified via cache (verify-password endpoint)
         $cacheKey = "note_pwd_{$note->id}_" . $request->user()->id;
