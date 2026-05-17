@@ -18,12 +18,9 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-if [ ! -d vendor ] || [ ! -f vendor/autoload.php ]; then
-  composer install --no-interaction --prefer-dist --no-dev --no-progress
-fi
-
-APP_KEY=$(grep -oP 'APP_KEY=\K.*' .env)
-if [ -z "$APP_KEY" ]; then
+# vendor/ is already installed at Docker build time
+# Only generate APP_KEY if missing
+if ! grep -q '^APP_KEY=[A-Za-z0-9]' .env 2>/dev/null; then
   php artisan key:generate --force
 fi
 
