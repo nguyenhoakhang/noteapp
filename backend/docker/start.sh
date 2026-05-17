@@ -3,7 +3,7 @@ set -e
 
 echo "Waiting for MySQL..."
 for i in $(seq 1 30); do
-  if mysqladmin ping -h mysql -unoteapp -pnoteapp --silent 2>/dev/null; then
+  if mysqladmin ping -h mysql -unoteapp -pnoteapp --silent --skip-ssl 2>/dev/null; then
     echo "MySQL ready."
     break
   fi
@@ -33,27 +33,12 @@ if [ ! -L public/storage ]; then
   php artisan storage:link
 fi
 
-# Start server in background first so healthcheck can pass
-php artisan serve --host=0.0.0.0 --port=8000 &
-PHP_PID=$!
+# Ensure storage framework directories exist (required for view cache, sessions, etc.)
+mkdir -p /var/www/storage/framework/{views,cache,sessions,testing}
 
-# Wait for port 8000 to actually be listening
-echo "Waiting for server on port 8000..."
-for i in $(seq 1 15); do
-  if curl -s -o /dev/null http://localhost:8000 2>/dev/null; then
-    echo "Server ready on port 8000."
-    break
-  fi
-  if [ $i -eq 15 ]; then
-    echo "Server did not start in time."
-    exit 1
-  fi
-  sleep 1
-done
-
-# Now run migrations (server can handle DB ops while running)
 php artisan migrate --force
-php artisan config:clear 2>/dev/null || true
-php artisan config:cache 2>/dev/null || true
 
-wait $PHP_PID
+# Clear any stale cached config (don't cache config in dev to avoid view path issues)
+php artisan config:clear 2>/dev/null || true
+
+exec php artisan serve --host=0.0.0.0 --port=8000
