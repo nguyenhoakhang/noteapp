@@ -12,7 +12,6 @@ storage/framework/testing
 storage/framework/views
 storage/logs
 tests
-docker
 .editorconfig
 .phpunit.cache
 .phpunit.result.cache
