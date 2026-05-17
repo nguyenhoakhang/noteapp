@@ -19,7 +19,16 @@ const FONT_FAMILIES = [
   { label: "Inter", value: "Inter, sans-serif" },
   { label: "Poppins", value: "Poppins, sans-serif" },
   { label: "Roboto", value: "Roboto, sans-serif" },
+  { label: "Open Sans", value: '"Open Sans", sans-serif' },
+  { label: "Lato", value: "Lato, sans-serif" },
+  { label: "Montserrat", value: "Montserrat, sans-serif" },
+  { label: "Nunito", value: "Nunito, sans-serif" },
+  { label: "Source Sans Pro", value: '"Source Sans Pro", sans-serif' },
+  { label: "Merriweather", value: "Merriweather, serif" },
+  { label: "Playfair Display", value: '"Playfair Display", serif' },
+  { label: "Fira Sans", value: '"Fira Sans", sans-serif' },
   { label: "JetBrains Mono", value: '"JetBrains Mono", monospace' },
+  { label: "Fira Code", value: '"Fira Code", monospace' },
 ];
 
 const FONT_SIZES = [
@@ -34,16 +43,16 @@ const FONT_SIZES = [
 ];
 
 const TEXT_COLORS = [
-  "#28251d",
-  "#ef4444",
-  "#f97316",
-  "#eab308",
-  "#22c55e",
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-  "#6b7280",
-  "#ffffff",
+  "#111827", // Black / default
+  "#6b7280", // Gray
+  "#ef4444", // Red
+  "#f97316", // Orange
+  "#eab308", // Yellow
+  "#22c55e", // Green
+  "#06b6d4", // Cyan
+  "#3b82f6", // Blue
+  "#8b5cf6", // Purple
+  "#ec4899", // Pink
 ];
 
 export default function EditorToolbar({ editor, onImageUpload }) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, ReactNodeViewRenderer } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
@@ -9,11 +9,47 @@ import Placeholder from "@tiptap/extension-placeholder";
 import CodeBlock from "@tiptap/extension-code-block";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import { Node } from "@tiptap/core";
+
 import EditorToolbar from "./EditorToolbar";
 import LinkPreview from "./LinkPreview";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
 import useAuthStore from "../../store/authStore";
+
+// ── Custom Image Node View with delete button ──
+function ImageNodeView({ node, getPos, editor }) {
+  const handleDelete = useCallback(() => {
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from: getPos(), to: getPos() + node.nodeSize })
+      .run();
+  }, [editor, getPos, node.nodeSize]);
+
+  return (
+    <div className="img-wrapper" contentEditable={false}>
+      <img src={node.attrs.src} alt={node.attrs.alt || ""} />
+      {editor.isEditable && (
+        <button
+          className="img-delete-btn"
+          onClick={handleDelete}
+          title="Delete image"
+          type="button"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Custom Image extension with NodeView ──
+const CustomImage = Image.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(ImageNodeView);
+  },
+});
 
 export default function RichNoteEditor({
   noteId,
@@ -38,7 +74,7 @@ export default function RichNoteEditor({
       Color,
       FontFamily,
       CodeBlock,
-      Image.configure({ inline: false, allowBase64: true }),
+      CustomImage.configure({ inline: false, allowBase64: true }),
       Placeholder.configure({ placeholder: "Start writing…" }),
       TaskList,
       TaskItem.configure({ nested: true }),

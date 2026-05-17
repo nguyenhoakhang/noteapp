@@ -95,8 +95,9 @@ class NoteController extends Controller
         }
 
         return new NoteResource(
-            $note->load('labels:id,name', 'attachments')
+            $note->load('labels:id,name', 'attachments')->loadCount('shares')
         );
+
     }
 
     // PUT /api/notes/{id}

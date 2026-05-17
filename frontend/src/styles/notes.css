@@ -95,29 +95,42 @@
     position: relative;
 }
 
-[data-theme="dark"] .note-grid-card {
-    background: var(--note-color, var(--surface));
+[data-theme="dark"] .note-grid-card,
+[data-theme="dark"] .note-list-item {
+    background:
+        color-mix(in srgb,
+            var(--note-color, var(--surface)),
+            var(--surface) 50%);
+
     border-color: var(--border);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, .18);
 }
 
 /* Dark mode: light note colors get muted fallback */
-[data-theme="dark"] .note-grid-card[style*="--note-color"] {
-    --note-color: var(--surface-2);
-}
-
+[data-theme="dark"] .note-grid-card[style*="--note-color"],
 [data-theme="dark"] .note-list-item[style*="--note-color"] {
-    --note-color: var(--surface-2);
+    background:
+        color-mix(in srgb,
+            var(--note-color),
+            var(--surface) 50%);
 }
 
-.note-grid-card:hover {
-    box-shadow: var(--card-shadow-hover);
+.note-grid-card:hover,
+.note-list-item:hover {
     transform: translateY(-2px);
+
+    box-shadow:
+        var(--card-shadow-hover);
 }
 
-.note-grid-card:active {
+.note-grid-card:active,
+.note-list-item:active {
     transform: translateY(0);
-    box-shadow: var(--card-shadow);
+
+    box-shadow:
+        var(--card-shadow);
 }
 
 /* ── Pinned indicator bar ── */
@@ -174,17 +187,72 @@
     opacity: 0.45;
 }
 
-/* Status icons — always visible */
+/* Status icons — always visible, colored dot badges */
 .note-status-icons {
     display: flex;
     gap: 0.25rem;
     flex-shrink: 0;
     opacity: 1 !important;
+    align-items: center;
 }
 
-.icon-pin   { color: #f59e0b; }
-.icon-lock  { color: #8b5cf6; }
-.icon-share { color: #10b981; }
+/* Colored dot background for status icons */
+.status-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot--pinned {
+    color: #d97706;
+}
+
+.status-dot--protected {
+    color: #7c3aed;
+}
+
+.status-dot--shared {
+    color: #059669;
+}
+
+[data-theme="dark"] .status-dot--pinned {
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .status-dot--protected {
+    color: #a78bfa;
+}
+
+[data-theme="dark"] .status-dot--shared {
+    color: #34d399;
+}
+
+/* Shared badge — visible chip for owner's "All Notes" view (grid only) */
+.note-shared-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: var(--radius-full);
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    white-space: nowrap;
+    line-height: 1.4;
+    height: 22px;
+}
+
+[data-theme="dark"] .note-shared-badge {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+}
+
+
 
 /* Pin animation */
 @keyframes pin-pop {

@@ -397,6 +397,13 @@ export default function NotesPage() {
     setSidebarOpen(false);
   };
 
+  const handleHomeClick = () => {
+    setActiveSection("notes");
+    setActiveLabel(null);
+    setSearch("");
+  };
+
+
   return (
     <div className="app-layout" data-theme={theme}>
       <OfflineBanner online={online} />
@@ -410,7 +417,9 @@ export default function NotesPage() {
         theme={theme}
         toggleTheme={toggleTheme}
         onMenuClick={() => setSidebarOpen((s) => !s)}
+        onHomeClick={handleHomeClick}
       />
+
 
       <div className="app-body">
         <Sidebar

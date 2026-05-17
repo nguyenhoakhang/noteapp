@@ -15,13 +15,15 @@ import { useNavigate } from "react-router-dom";
 export default function Navbar({
   search,
   setSearch,
-  searching, // Đại ca nhớ truyền thêm state này từ cha nhé
+  searching,
   view,
   setView,
   theme,
   toggleTheme,
-  onMenuClick, // ✅ Thêm prop onMenuClick cho mobile menu
+  onMenuClick,
+  onHomeClick, // Click brand to go to "All Notes"
 }) {
+
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [avatarVersion, setAvatarVersion] = useState(Date.now());
@@ -41,7 +43,10 @@ export default function Navbar({
         <Menu size={18} />
       </button>
 
-      <div className="navbar-brand">📝 NoteApp</div>
+      <div className="navbar-brand" onClick={onHomeClick} title="All Notes">
+        📝 NoteApp
+      </div>
+
 
       {/* Phần Search Indicator đã được cập nhật */}
       <div className="search-wrap">

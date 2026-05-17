@@ -52,8 +52,11 @@ class NoteService
             }
 
             $note->load('labels', 'attachments');
+            $note->loadCount('shares');
+            $note->is_shared = $note->shares_count > 0;
 
             // Preserve password_verified flag if it was set (for NoteResource)
+
             if (!empty($note->password_verified)) {
                 $note->password_verified = true;
             }

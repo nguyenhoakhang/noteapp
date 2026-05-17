@@ -8,13 +8,13 @@ import PasswordInput from "../components/PasswordInput";
 
 const FONT_SIZES = ["small", "medium", "large"];
 const NOTE_COLORS = [
-  "#ffffff",
-  "#fef9c3",
-  "#d1fae5",
-  "#dbeafe",
-  "#fce7f3",
-  "#ede9fe",
-  "#ffedd5",
+  "#ffffff", // default
+  "#fef3c7", // warm yellow
+  "#fee2e2", // soft red
+  "#dcfce7", // soft green
+  "#dbeafe", // soft blue
+  "#ede9fe", // soft purple
+  "#fce7f3", // soft pink
 ];
 
 export default function PreferencesPage() {

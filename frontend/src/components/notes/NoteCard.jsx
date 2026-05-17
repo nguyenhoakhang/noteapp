@@ -59,10 +59,11 @@ const NoteCard = memo(function NoteCard({
     isList
       ? "note-list-item"
       : "note-grid-card",
-    note.is_pinned && !isList ? "is-pinned" : "",
+    note.is_pinned ? "is-pinned" : "",
   ]
     .filter(Boolean)
     .join(" ");
+
 
   return (
     <div
@@ -80,22 +81,33 @@ const NoteCard = memo(function NoteCard({
             {note.title || "Untitled"}
           </span>
 
-          {/* Status icons — always visible */}
+          {/* Status icons — always visible, with colored dot backgrounds */}
           <div className="note-status-icons">
             {note.is_pinned && (
-              <Pin size={13} className="icon-pin" title="Pinned" />
+              <span className="status-dot status-dot--pinned" title="Pinned">
+                <Pin size={11} />
+              </span>
             )}
             {note.is_protected && (
-              <Lock
-                size={13}
-                className="icon-lock"
-                title="Password protected"
-              />
+              <span className="status-dot status-dot--protected" title="Password protected">
+                <Lock size={11} />
+              </span>
             )}
-            {note.is_shared && (
-              <Share2 size={13} className="icon-share" title="Shared" />
+            {note.is_shared && !isSharedNote && (
+              isList ? (
+                <span className="status-dot status-dot--shared" title="Shared with others">
+                  <Share2 size={11} />
+                </span>
+              ) : (
+                <span className="note-shared-badge" title="Shared with others">
+                  <Share2 size={11} />
+                  <span>Shared</span>
+                </span>
+              )
             )}
           </div>
+
+
         </div>
 
         {/* Preview — 3 lines of content */}

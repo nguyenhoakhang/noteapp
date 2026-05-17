@@ -173,17 +173,33 @@ body,
   background: var(--text-faint);
 }
 
-/* ══════════════════
-   SKELETON LOADING
-   ══════════════════ */
-
 .skeleton {
-  background: linear-gradient(90deg, var(--border-faint) 25%, var(--border) 50%, var(--border-faint) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius-md);
+  background: var(--border-faint);
+
+  /* performance */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
+/* shimmer layer */
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent);
+
+  animation: skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+/* label skeleton */
 .skeleton-label {
   display: inline-block;
   width: 80px;
@@ -191,21 +207,17 @@ body,
   margin-bottom: 12px;
 }
 
+/* note card skeleton */
 .note-skeleton {
   height: 140px;
 }
 
+/* animation (GPU-friendly) */
 @keyframes skeleton-shimmer {
-   0% { background-position: 200% 0; }
-   100% { background-position: -200% 0; }
+  100% {
+    transform: translateX(100%);
+  }
 }
-
-[data-theme="dark"] .skeleton {
-  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
-  background-size: 200% 100%;
-}
-
-
 /* ══════════════════
    SHARED ANIMATIONS
    ══════════════════ */

@@ -450,6 +450,7 @@
     border: 1px solid var(--border);
     overflow: hidden;
 }
+
 .perm-opt {
     padding: 0.2rem 0.55rem;
     font-size: 0.72rem;
@@ -458,11 +459,32 @@
     border: none;
     cursor: pointer;
     color: var(--text-muted);
-    transition: background 0.1s, color 0.1s;
-}
-.perm-opt.active { background: var(--primary); color: white; }
-.perm-opt:not(.active):hover { background: var(--border-faint); }
 
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        transform 0.12s ease;
+}
+
+/* hover nhẹ hơn, đỡ “giật” */
+.perm-opt:not(.active):hover {
+    background: var(--border-faint);
+    transform: translateY(-1px);
+}
+
+/* active state mượt + có cảm giác “pressed” */
+.perm-opt.active {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.02);
+}
+
+/* click xuống */
+.perm-opt:active {
+    transform: scale(0.98);
+}
+
+/* revoke button */
 .revoke-btn {
     background: none;
     border: none;
@@ -471,8 +493,22 @@
     padding: 4px;
     border-radius: 4px;
     display: flex;
+
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        transform 0.12s ease;
 }
-.revoke-btn:hover { color: var(--danger); background: var(--danger-light); }
+
+.revoke-btn:hover {
+    color: var(--danger);
+    background: var(--danger-light);
+    transform: translateY(-1px);
+}
+
+.revoke-btn:active {
+    transform: scale(0.95);
+}
 
 .share-empty {
     font-size: 0.85rem;
@@ -663,13 +699,79 @@
 .empty-state h3 { font-size: 0.95rem; font-weight: 600; color: var(--text); }
 .empty-state p { font-size: 0.875rem; max-width: 30ch; }
 
-/* ── Toast override ── */
+/* ── Base Toast (shared) ── */
 .Toastify__toast {
     border-radius: var(--radius-lg) !important;
     font-size: 0.875rem !important;
     font-family: inherit !important;
+
+    padding: 0.75rem 1rem !important;
+    min-height: 42px !important;
+
+    will-change: transform, opacity;
+    transform: translateZ(0);
+
+    transition:
+        transform 0.18s ease,
+        opacity 0.18s ease,
+        box-shadow 0.18s ease !important;
 }
 
+/* entry animation */
+.Toastify__toast--enter {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+}
+
+.Toastify__toast--enter-active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* exit animation */
+.Toastify__toast--exit {
+    transform: translateY(-6px) scale(0.98);
+    opacity: 0;
+}
+
+/* container spacing */
+.Toastify__toast-container {
+    padding: 0.5rem;
+}
+
+/* progress bar */
+.Toastify__progress-bar {
+    height: 2px !important;
+    opacity: 0.7;
+}
+/* ── Success Toast ── */
+.Toastify__toast--success {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+
+    border-left: 3px solid var(--success) !important;
+}
+
+[data-theme="dark"] .Toastify__toast--success {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+/* ── Error Toast ── */
+.Toastify__toast--error {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+
+    border-left: 3px solid var(--danger) !important;
+}
+
+[data-theme="dark"] .Toastify__toast--error {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+}
 /* ── Password unlock modal ── */
 .unlock-note-overlay {
     position: fixed;
