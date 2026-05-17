@@ -1,0 +1,215 @@
+/* ═══════════════════════════════════════
+   BASE — Variables, resets, typography, theme, transitions, utilities
+   ═══════════════════════════════════════ */
+
+/* ══════════════════
+   DESIGN TOKENS — Premium neutral system
+   ══════════════════ */
+
+:root {
+  /* Backgrounds — warm neutral */
+  --bg: #f5f4f1;
+  --surface: #ffffff;
+  --surface-2: #f8f7f5;
+
+  /* Primary — teal, muted */
+  --primary: #01696f;
+  --primary-hover: #0c4e54;
+  --primary-light: rgba(1, 105, 111, 0.08);
+
+  /* Text — high contrast, warm */
+  --text: #1f1d1a;
+  --text-muted: #7a7974;
+  --text-faint: #b0afab;
+
+  /* Borders — subtle */
+  --border: #e2e0dc;
+  --border-faint: #efede9;
+
+  /* Semantic */
+  --danger: #dc2626;
+  --danger-light: rgba(220, 38, 38, 0.08);
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --warning-border: #fde68a;
+  --success-bg: #d1fae5;
+  --success-text: #065f46;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows — intentional, layered */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-xl: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg: #141312;
+  --surface: #1a1917;
+  --surface-2: #22211e;
+  --primary: #4f98a3;
+  --primary-hover: #5aaab6;
+  --primary-light: rgba(79, 152, 163, 0.12);
+  --text: #f0efec;
+  --text-muted: #a09f9b;
+
+  --text-faint: #5e5d5a;
+  --border: #2d2c2a;
+  --border-faint: #252423;
+
+  --danger: #ef4444;
+  --danger-light: rgba(239, 68, 68, 0.1);
+  --warning-bg: #451a03;
+  --warning-text: #fde68a;
+  --warning-border: #78350f;
+  --success-bg: #064e3b;
+  --success-text: #a7f3d0;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.25);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-xl: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* ══════════════════
+   GLOBAL RESET
+   ══════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--app-font-size, 16px);
+}
+
+/* ══════════════════
+   SMOOTH THEME TRANSITION
+   — Only transitions on specific properties, not transform/opacity
+   ══════════════════ */
+
+html {
+  transition: color-scheme 0.2s ease;
+}
+
+/* Apply smooth transitions to all themed elements without !important */
+/* Only apply to root-level elements to avoid layout thrashing */
+html,
+body,
+.app-layout,
+.navbar,
+.sidebar,
+.notes-main,
+.note-grid-card,
+.modal-overlay,
+.modal,
+.note-editor,
+.editor-header,
+.editor-toolbar,
+.editor-footer,
+.editor-attachments,
+.editor-colors,
+.auth-card,
+.prefs-section,
+.prefs-save-bar,
+.list-view,
+.shared-note-card,
+.unlock-note-modal,
+.Toastify__toast {
+  transition-duration: 0.15s;
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-timing-function: ease;
+}
+
+/* Exclude certain elements from this */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
+/* ══════════════════
+   SELECTION
+   ══════════════════ */
+
+::selection {
+  background: rgba(1, 105, 111, 0.18);
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(79, 152, 163, 0.25);
+}
+
+/* ══════════════════
+   SCROLLBAR
+   ══════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
+
+/* ══════════════════
+   SKELETON LOADING
+   ══════════════════ */
+
+.skeleton {
+  background: linear-gradient(90deg, var(--border-faint) 25%, var(--border) 50%, var(--border-faint) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-label {
+  display: inline-block;
+  width: 80px;
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.note-skeleton {
+  height: 140px;
+}
+
+@keyframes skeleton-shimmer {
+   0% { background-position: 200% 0; }
+   100% { background-position: -200% 0; }
+}
+
+/* ══════════════════
+   SHARED ANIMATIONS
+   ══════════════════ */
+
+@keyframes slideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

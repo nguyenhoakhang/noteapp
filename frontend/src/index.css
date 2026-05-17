@@ -1,0 +1,10 @@
+/* ═══════════════════════════════════════════════
+   index.css — Entry point
+
+   All styles from styles/*.css for clean architecture:
+     base.css       → variables, resets, typography, theme transition, scrollbar
+     components.css → buttons, forms, modals, auth, banners, toggles, skeletons
+     layout.css     → app shell, navbar, sidebar, search, preferences, responsive
+     notes.css      → note cards, grid/list views, shared notes, FAB, animations
+     editor.css     → editor modal, toolbar, ProseMirror, collab, attachments
+   ═══════════════════════════════════════════════ */

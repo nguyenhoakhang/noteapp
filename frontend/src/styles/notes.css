@@ -1,0 +1,608 @@
+/* ═══════════════════════════════════════
+   NOTES — Cards, grid layouts, list view, shared notes
+   Editor styles live in editor.css
+   ═══════════════════════════════════════ */
+
+/* ── View toggle (grid/list) ── */
+.view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    background: none;
+    cursor: pointer;
+}
+.view-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ── FAB — mobile new note ── */
+.fab-new-note {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 80;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.fab-new-note:hover  { transform: scale(1.06); box-shadow: var(--shadow-xl); }
+.fab-new-note:active { transform: scale(0.96); }
+@media (max-width: 768px) { .fab-new-note { display: flex; } }
+
+/* ── Note entry animation ── */
+@keyframes noteIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.note-grid-card,
+.note-list-item,
+.shared-note-card {
+    animation: noteIn 0.18s ease both;
+}
+
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM — Unified card architecture
+   ═══════════════════════════════════════ */
+
+/* ── Shared card variables ── */
+.note-grid-card {
+    --card-radius: var(--radius-lg, 12px);
+    --card-padding: 1rem 1.1rem;
+    --card-min-height: 140px;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+    --card-transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* ══════════════════
+   UNIFIED NOTE GRID — Single consistent grid for all notes
+   ══════════════════ */
+
+.note-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+/* ══════════════════
+   NOTE CARD — Single unified card component
+   ══════════════════ */
+
+.note-grid-card {
+    background: var(--note-color, var(--surface));
+    border: 1px solid var(--border-faint);
+    border-radius: var(--card-radius);
+    cursor: pointer;
+    overflow: hidden;
+    min-height: var(--card-min-height);
+    display: flex;
+    flex-direction: column;
+    transition: var(--card-transition);
+    box-shadow: var(--card-shadow);
+    position: relative;
+}
+
+[data-theme="dark"] .note-grid-card {
+    background: var(--note-color, var(--surface));
+    border-color: var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.note-grid-card:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.note-grid-card:active {
+    transform: translateY(0);
+    box-shadow: var(--card-shadow);
+}
+
+/* ── Pinned indicator bar ── */
+.note-grid-card.is-pinned {
+    border-top: 3px solid #f59e0b;
+}
+
+.note-grid-card.is-pinned::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #f59e0b;
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
+}
+
+/* ══════════════════
+   CARD INTERNALS — Shared by all views
+   ══════════════════ */
+
+.note-card-inner {
+    display: flex;
+    flex-direction: column;
+    padding: var(--card-padding);
+    flex: 1;
+    gap: 0.5rem;
+    min-height: var(--card-min-height);
+}
+
+.note-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.note-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+    overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    letter-spacing: -0.01em;
+}
+
+.note-untitled {
+    font-weight: 400;
+    font-style: italic;
+    opacity: 0.45;
+}
+
+/* Status icons — always visible */
+.note-status-icons {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+    opacity: 1 !important;
+}
+
+.icon-pin   { color: #f59e0b; }
+.icon-lock  { color: #8b5cf6; }
+.icon-share { color: #10b981; }
+
+/* Pin animation */
+@keyframes pin-pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.icon-pin-animate { animation: pin-pop 0.22s ease; }
+
+/* Preview text — 3 lines max */
+.note-preview {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.55;
+    margin: 0;
+}
+
+.note-protected-hint {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    font-style: italic;
+    margin: 0;
+}
+
+/* Footer */
+.note-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border-faint);
+}
+
+.note-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.note-chip {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--radius-full);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.note-chip-more {
+    background: var(--border-faint);
+    color: var(--text-faint);
+}
+
+.note-date {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ══════════════════
+   CARD ACTION BUTTONS
+   ══════════════════ */
+
+.note-actions {
+    display: flex;
+    gap: 0.15rem;
+    opacity: 0;
+    transition: opacity 0.12s;
+    flex-shrink: 0;
+}
+
+.note-grid-card:hover .note-actions,
+.note-list-item:hover .note-actions,
+.note-grid-card:focus-within .note-actions {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .note-actions {
+        opacity: 1;
+    }
+}
+
+.note-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    transition: background 0.1s, color 0.1s, transform 0.1s;
+}
+
+.note-action-btn:hover         { background: var(--border-faint); color: var(--text); }
+.note-action-btn:active        { transform: scale(0.88); }
+.note-action-btn--active       { color: #f59e0b !important; }
+.note-action-btn--danger:hover { color: var(--danger); background: var(--danger-light); }
+
+.note-action-btn--active:hover {
+    background: #fef3c7 !important;
+}
+
+[data-theme="dark"] .note-action-btn--active:hover {
+    background: #451a03 !important;
+}
+
+/* ══════════════════
+   LIST VIEW — Clean table-like layout
+   ══════════════════ */
+
+.list-view {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* List header row */
+.list-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+}
+.list-header-cell { flex: 1; }
+.list-header-cell--title { min-width: 200px; }
+.list-header-cell--meta { flex: 0 0 120px; text-align: right; }
+
+/* List item row */
+.note-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--border-faint);
+    cursor: pointer;
+    transition: background 0.08s;
+    background: var(--note-color, transparent);
+}
+.note-list-item:last-child { border-bottom: none; }
+.note-list-item:hover {
+    background: var(--surface-2);
+}
+
+.note-list-item.is-pinned {
+    border-left: 3px solid #f59e0b;
+}
+
+/* Title column */
+.note-list-item .note-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 200px;
+    flex: 1;
+}
+.note-list-item .note-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    line-height: 1.3;
+}
+
+/* Status icons inline */
+.note-list-item .note-status-icons {
+    display: flex;
+    gap: 0.2rem;
+    flex-shrink: 0;
+}
+
+/* Preview column */
+.note-list-item .note-preview,
+.note-list-item .note-protected-hint {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    min-width: 100px;
+}
+
+/* Meta + actions column */
+.note-list-item .note-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    flex-shrink: 0;
+    flex: 0 0 auto;
+}
+
+.note-list-item .note-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+}
+
+.note-list-item .note-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    width: 80px;
+    text-align: right;
+}
+
+.note-list-item .note-chip {
+    font-size: 0.62rem;
+    padding: 0.05rem 0.4rem;
+}
+
+/* Actions */
+.note-list-item .note-actions {
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+.note-list-item:hover .note-actions { opacity: 1; }
+@media (hover: none) { .note-list-item .note-actions { opacity: 1; } }
+
+/* List view action bar (empty state) */
+.list-empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    margin-top: 1rem;
+}
+
+/* Shared-by row (shown on notes in "Shared with me" section) */
+.note-shared-by {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    padding: 0.3rem 0 0.1rem;
+    border-top: 1px dashed var(--border-faint);
+    margin-top: auto;
+}
+
+.note-shared-by .shared-badge {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.note-shared-by .shared-badge--edit { background: var(--primary-light); color: var(--primary); }
+.note-shared-by .shared-badge--read { background: var(--border-faint);  color: var(--text-faint); }
+
+/* ══════════════════
+   SHARED NOTES
+   ══════════════════ */
+
+.shared-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.shared-note-card {
+    background: var(--note-color, var(--surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: box-shadow 0.15s, transform 0.12s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.shared-note-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); transform: translateY(-2px); }
+
+[data-theme="dark"] .shared-note-card {
+    background: var(--note-color, var(--surface));
+}
+
+.shared-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.3rem;
+}
+
+.shared-by    { font-size: 0.75rem; color: var(--text-muted); }
+
+.shared-badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+
+.shared-badge--edit { background: var(--primary-light); color: var(--primary); }
+.shared-badge--read { background: var(--border-faint);  color: var(--text-faint); }
+
+.shared-remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-faint);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.shared-remove-btn:hover { color: var(--danger); background: var(--danger-light); }
+.shared-remove-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ══════════════════
+   SECTION LABELS — Pinned / Others
+   ══════════════════ */
+
+.notes-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin: 1.25rem 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.notes-section-label:first-child {
+    margin-top: 0;
+}
+
+.notes-section-label .label-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.notes-section-label .label-dot--pinned {
+    background: #f59e0b;
+}
+
+/* ══════════════════
+   RESPONSIVE
+   ══════════════════ */
+
+@media (max-width: 768px) {
+    .note-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .shared-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .note-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+    }
+
+    .note-grid-card {
+        --card-min-height: 120px;
+        --card-padding: 0.75rem 0.85rem;
+    }
+
+    .note-list-item .note-card-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .note-list-item .note-card-header {
+        min-width: unset;
+        max-width: unset;
+        width: 100%;
+    }
+
+    .shared-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.65rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .note-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shared-grid {
+        grid-template-columns: 1fr;
+    }
+}
