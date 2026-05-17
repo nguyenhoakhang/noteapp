@@ -555,6 +555,9 @@
     justify-content: center;
     background: var(--bg);
     padding: 1.5rem;
+
+    /* smooth page fade-in */
+    animation: auth-fade-in 0.35s ease-out;
 }
 
 .auth-card {
@@ -565,6 +568,20 @@
     width: 100%;
     max-width: 420px;
     box-shadow: var(--shadow-lg);
+
+    /* smooth float-in */
+    animation: auth-card-in 0.4s ease-out;
+
+    /* IMPORTANT: smooth interaction */
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.auth-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
 }
 
 .auth-logo {
@@ -576,6 +593,13 @@
     color: var(--primary);
     font-weight: 700;
     font-size: 1.25rem;
+
+    /* subtle pop */
+    transition: transform 0.2s ease;
+}
+
+.auth-logo:hover {
+    transform: scale(1.02);
 }
 
 .auth-title {
@@ -583,21 +607,34 @@
     font-weight: 700;
     margin-bottom: 0.3rem;
     letter-spacing: -0.02em;
+
+    transition: color 0.2s ease;
 }
 
 .auth-subtitle {
     font-size: 0.875rem;
     color: var(--text-muted);
     margin-bottom: 1.5rem;
+
+    transition: color 0.2s ease;
 }
 
-.auth-form { display: flex; flex-direction: column; gap: 0; }
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+
+    /* smooth input stacking feel */
+    transition: opacity 0.2s ease;
+}
 
 .auth-footer {
     text-align: center;
     margin-top: 1.25rem;
     font-size: 0.85rem;
     color: var(--text-muted);
+
+    transition: color 0.2s ease;
 }
 
 .auth-link { color: var(--primary); font-weight: 500; cursor: pointer; }
@@ -614,15 +651,41 @@
     margin-top: 0.75rem;
 }
 .auth-link-btn:hover { text-decoration: underline; }
+/* ── KEYFRAMES ── */
 
-/* OTP steps */
+@keyframes auth-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes auth-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+/* ── OTP steps container ── */
 .otp-steps {
     display: flex;
     align-items: center;
     gap: 0;
     margin-bottom: 1.75rem;
     position: relative;
+
+    /* smooth entry */
+    animation: otp-fade-in 0.35s ease-out;
 }
+
 .otp-steps::before {
     content: '';
     position: absolute;
@@ -632,7 +695,12 @@
     height: 1px;
     background: var(--border);
     z-index: 0;
+
+    /* subtle glow line feel */
+    transition: background 0.2s ease;
 }
+
+/* ── Step ── */
 .otp-step {
     display: flex;
     flex-direction: column;
@@ -642,7 +710,19 @@
     font-size: 0.72rem;
     color: var(--text-faint);
     z-index: 1;
+
+    /* smooth state change */
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
 }
+
+/* hover micro interaction (feels app-like) */
+.otp-step:hover {
+    transform: translateY(-1px);
+}
+
+/* ── Step dot ── */
 .otp-step-dot {
     width: 28px;
     height: 28px;
@@ -655,18 +735,42 @@
     font-size: 0.8rem;
     font-weight: 600;
     border: 2px solid var(--border);
-    transition: all 0.2s;
-}
-.otp-step.active .otp-step-dot { background: var(--primary); color: white; border-color: var(--primary); }
-.otp-step.active { color: var(--text); }
-.otp-step.done .otp-step-dot { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
 
+    transition:
+        all 0.25s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+/* ACTIVE */
+.otp-step.active .otp-step-dot {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary), transparent 85%);
+}
+
+.otp-step.active {
+    color: var(--text);
+}
+
+/* DONE */
+.otp-step.done .otp-step-dot {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* ── OTP inputs ── */
 .otp-boxes {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
     margin-bottom: 1.25rem;
+
+    animation: otp-slide-up 0.35s ease-out;
 }
+
 .otp-box {
     width: 48px;
     height: 56px;
@@ -677,12 +781,47 @@
     font-size: 1.5rem;
     font-weight: 700;
     text-align: center;
-    transition: border-color 0.15s, box-shadow 0.15s;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease,
+        background 0.2s ease;
 }
+
+/* focus feels “alive” */
 .otp-box:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(1, 105, 111, 0.12);
+    transform: translateY(-1px);
+    background: var(--surface);
+}
+
+/* ── KEYFRAMES ── */
+
+@keyframes otp-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes otp-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ── Empty state ── */
