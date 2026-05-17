@@ -33,8 +33,27 @@ if [ ! -L public/storage ]; then
   php artisan storage:link
 fi
 
+# Start server in background first so healthcheck can pass
+php artisan serve --host=0.0.0.0 --port=8000 &
+PHP_PID=$!
+
+# Wait for port 8000 to actually be listening
+echo "Waiting for server on port 8000..."
+for i in $(seq 1 15); do
+  if curl -s -o /dev/null http://localhost:8000 2>/dev/null; then
+    echo "Server ready on port 8000."
+    break
+  fi
+  if [ $i -eq 15 ]; then
+    echo "Server did not start in time."
+    exit 1
+  fi
+  sleep 1
+done
+
+# Now run migrations (server can handle DB ops while running)
 php artisan migrate --force
 php artisan config:clear 2>/dev/null || true
 php artisan config:cache 2>/dev/null || true
 
-exec php artisan serve --host=0.0.0.0 --port=8000
+wait $PHP_PID

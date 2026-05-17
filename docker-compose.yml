@@ -62,7 +62,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 60s
+      start_period: 90s
     networks:
       - noteapp
 
@@ -78,7 +78,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - CHOKIDAR_USEPOLLING=true   # ✅ BẮT BUỘC cho HMR trong Docker
+      - CHOKIDAR_USEPOLLING=true # ✅ BẮT BUỘC cho HMR trong Docker
     networks:
       - noteapp
     command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host"
@@ -99,14 +99,14 @@ services:
         condition: service_started
     networks:
       - noteapp
-  
+
   mailpit:
     image: axllent/mailpit:latest
     container_name: noteapp_mailpit
     restart: unless-stopped
     ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web UI
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI
     networks:
       - noteapp
 
