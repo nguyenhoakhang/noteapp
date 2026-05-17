@@ -166,8 +166,17 @@ export default function NotesPage() {
   const displayNotes = useMemo(() => {
     let list;
     if (activeSection === "shared") {
+      // sharedWithMe() returns flat fields (title, content, color, etc.)
       list = shared.map((s) => ({
-        ...s.note,
+        id: s.note_id,
+        title: s.title,
+        content: s.content,
+        content_preview: s.content_preview,
+        color: s.color,
+        is_pinned: s.is_pinned,
+        is_protected: s.is_protected,
+        created_at: s.note_updated,
+        updated_at: s.note_updated,
         _sharedBy: s.shared_by,
         _permission: s.permission,
         _shareId: s.share_id,
@@ -509,6 +518,7 @@ export default function NotesPage() {
           readOnly={editingNote._permission === "read"}
           initialPassword={verifiedPasswords[editingNote.id] || ""}
           onPasswordVerified={handlePasswordVerified}
+          isOwner={!editingNote._permission}
         />
       )}
 

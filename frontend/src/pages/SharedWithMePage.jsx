@@ -37,7 +37,7 @@ export default function SharedWithMePage() {
       setUnlocking(item);
       return;
     }
-    setOpenNote({ id: item.note_id, permission: item.permission });
+    setOpenNote({ id: item.note_id, permission: item.permission, is_protected: item.is_protected });
   };
 
   const handleUnlocked = (item, password) => {
@@ -173,12 +173,13 @@ export default function SharedWithMePage() {
         <div className="modal-overlay" onClick={() => setOpenNote(null)}>
           <div className="note-editor" onClick={(e) => e.stopPropagation()}>
             <NoteEditor
-              note={{ id: openNote.id }}
+              note={{ id: openNote.id, is_protected: openNote.is_protected }}
               readOnly={openNote.permission === "read"}
               initialPassword={unlockedPasswords[openNote.id]}
               onClose={() => setOpenNote(null)}
               onSave={() => {}} // shared notes: no-op save callback
               labels={[]}
+              isOwner={false}
             />
           </div>
         </div>
@@ -188,7 +189,7 @@ export default function SharedWithMePage() {
       {unlocking && (
         <NotePasswordUnlock
           note={unlocking}
-          onUnlocked={() => handleUnlocked(unlocking)}
+          onUnlocked={(password) => handleUnlocked(unlocking, password)}
           onClose={() => setUnlocking(null)}
         />
       )}

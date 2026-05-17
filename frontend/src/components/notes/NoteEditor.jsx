@@ -28,6 +28,7 @@ export default function NoteEditor({
   readOnly = false,
   initialPassword = "",
   onPasswordVerified,
+  isOwner = false,
 }) {
   const isNew = !note?.id;
   const [form, setForm] = useState({
@@ -90,6 +91,11 @@ export default function NoteEditor({
       })
       .catch((err) => {
         console.error("Failed to fetch note:", err);
+        // Handle password-protected notes that need unlock
+        if (err?.response?.status === 403 && err?.response?.data?.needs_unlock) {
+          setLocked(true);
+          return;
+        }
         toast.error("Failed to load note content");
       })
       .finally(() => setLoadingFull(false));
@@ -109,7 +115,7 @@ export default function NoteEditor({
   const [locked, setLocked] = useState(() => {
     if (!note?.is_protected) return false;
     // Owners never need password for their own notes (backend bypasses for owners)
-    if (!readOnly && !initialPassword) return false;
+    if (isOwner) return false;
     // Check if password was cached in sessionStorage (from NotesPage)
     if (initialPassword) {
       notePasswordRef.current = initialPassword;
@@ -301,11 +307,13 @@ export default function NoteEditor({
       const { data } = await api.get(`/notes/${noteId}`, {
         params: { note_password: notePassword },
       });
+      // Handle API Resource wrapping: response is { data: { ...noteFields } }
+      const n = data?.data ?? data;
       setForm({
-        title: data.title || "",
-        content: data.content || "",
-        color: data.color,
-        label_ids: data.labels?.map((l) => l.id) || [],
+        title: n.title || "",
+        content: n.content || "",
+        color: n.color,
+        label_ids: n.labels?.map((l) => l.id) || [],
       });
       setLocked(false);
       // Track that we've unlocked so auto-save includes the password
