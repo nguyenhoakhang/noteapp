@@ -1,96 +1,229 @@
+# =============================================================================
+# ENHANCED FULL API TEST — NoteApp
+# Tests all critical API endpoints with proper error handling
+# Handles API Resource wrapping ({ data: { ... } })
+# =============================================================================
+# Usage:  .\test_full.ps1
+# Prereq: docker compose up -d --build  (containers running)
+# =============================================================================
+
 $BASE_URL = "http://localhost:8080/api"
+$PASS = 0
+$FAIL = 0
 
-Write-Host "=== FULL API TEST ===" -ForegroundColor Cyan
-
-# 1. Register
-$random = Get-Random
-$email = "test_$random@test.com"
-Write-Host "[1] Register: $email"
-$body = '{"name":"TestUser","email":"' + $email + '","password":"12345678","password_confirmation":"12345678"}'
-$response = Invoke-RestMethod -Uri "$BASE_URL/register" -Method Post -Body $body -ContentType "application/json"
-$token = $response.token
-Write-Host "  -> OK, User ID: $($response.user.id)" -ForegroundColor Green
-
-# 2. Create note
-Write-Host "[2] Create note"
-$noteBody = '{"title":"Secret Note","content":"Protected content"}'
-$note = Invoke-RestMethod -Uri "$BASE_URL/notes" -Method Post -Headers @{Authorization="Bearer $token"} -Body $noteBody -ContentType "application/json"
-$noteId = $note.id
-Write-Host "  -> OK, Note ID: $noteId" -ForegroundColor Green
-
-# 3. Set password
-Write-Host "[3] Set password"
-$passBody = '{"password":"secret123","password_confirmation":"secret123"}'
-Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId/set-password" -Method Post -Headers @{Authorization="Bearer $token"} -Body $passBody -ContentType "application/json" | Out-Null
-Write-Host "  -> OK, Password set" -ForegroundColor Green
-
-# 4. Get note without password (should get 403)
-Write-Host "[4] Get note WITHOUT password (should fail)"
-try {
-    $result = Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId" -Method Get -Headers @{Authorization="Bearer $token"} -ErrorAction Stop
-    Write-Host "  -> FAIL: Note accessible without password!" -ForegroundColor Red
-} catch {
-    if ($_.Exception.Response.StatusCode -eq 403) {
-        Write-Host "  -> OK, Blocked with 403" -ForegroundColor Green
-    } else {
-        Write-Host "  -> Unexpected error: $($_.Exception.Response.StatusCode)" -ForegroundColor Yellow
+function Test-Step {
+    param([string]$Name, [scriptblock]$Script)
+    try {
+        & $Script
+        $script:PASS++
+        Write-Host "  ✅ $Name" -ForegroundColor Green
+    } catch {
+        $script:FAIL++
+        Write-Host "  ❌ $Name" -ForegroundColor Red
+        Write-Host "     $_" -ForegroundColor DarkRed
     }
 }
 
-# 5. Get note with password
-Write-Host "[5] Get note WITH password"
-$result = Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId?note_password=secret123" -Method Get -Headers @{Authorization="Bearer $token"}
-if ($result.content -eq "Protected content") {
-    Write-Host "  -> OK, Content correct" -ForegroundColor Green
-} else {
-    Write-Host "  -> FAIL, Content mismatch" -ForegroundColor Red
+function ApiCall {
+    param([string]$Method="GET", [string]$Url, [string]$Body="", [string]$Token="")
+    $headers = @{"Accept"="application/json"; "Content-Type"="application/json"}
+    if ($Token) { $headers["Authorization"] = "Bearer $Token" }
+    
+    $params = @{Uri="$BASE_URL$Url"; Method=$Method; Headers=$headers; ContentType="application/json"}
+    if ($Body) { $params.Body = $Body }
+    
+    return Invoke-RestMethod @params -ErrorAction Stop
 }
 
-# 6. Create label
-Write-Host "[6] Create label"
-$labelBody = '{"name":"Important"}'
-$label = Invoke-RestMethod -Uri "$BASE_URL/labels" -Method Post -Headers @{Authorization="Bearer $token"} -Body $labelBody -ContentType "application/json"
-$labelId = $label.id
-Write-Host "  -> OK, Label ID: $labelId" -ForegroundColor Green
-
-# 7. Attach label to note
-Write-Host "[7] Attach label to note"
-$attachBody = '{"label_ids":[' + $labelId + ']}'
-$updated = Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId" -Method Put -Headers @{Authorization="Bearer $token"} -Body $attachBody -ContentType "application/json"
-if ($updated.labels[0].id -eq $labelId) {
-    Write-Host "  -> OK, Label attached" -ForegroundColor Green
-} else {
-    Write-Host "  -> FAIL, Label not attached" -ForegroundColor Red
+function GetHttpCode {
+    param([string]$Method="GET", [string]$Url, [string]$Body="", [string]$Token="")
+    $headers = @{"Accept"="application/json"; "Content-Type"="application/json"}
+    if ($Token) { $headers["Authorization"] = "Bearer $Token" }
+    
+    $params = @{Uri="$BASE_URL$Url"; Method=$Method; Headers=$headers; ContentType="application/json"; UseBasicParsing=$true}
+    if ($Body) { $params.Body = $Body }
+    
+    try {
+        $r = Invoke-WebRequest @params -ErrorAction Stop
+        return $r.StatusCode
+    } catch {
+        if ($_.Exception.Response) {
+            return [int]$_.Exception.Response.StatusCode
+        }
+        return 0
+    }
 }
 
-# 8. Create second user
-Write-Host "[8] Create second user"
-$random2 = Get-Random
-$email2 = "share_$random2@test.com"
-$body2 = '{"name":"ShareUser","email":"' + $email2 + '","password":"12345678","password_confirmation":"12345678"}'
-$user2 = Invoke-RestMethod -Uri "$BASE_URL/register" -Method Post -Body $body2 -ContentType "application/json"
-$token2 = $user2.token
-Write-Host "  -> OK, Second user created" -ForegroundColor Green
-
-# 9. Share note
-Write-Host "[9] Share note with second user"
-$shareBody = '{"email":"' + $email2 + '","permission":"read"}'
-Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId/share" -Method Post -Headers @{Authorization="Bearer $token"} -Body $shareBody -ContentType "application/json" | Out-Null
-Write-Host "  -> OK, Note shared" -ForegroundColor Green
-
-# 10. Get shared notes as second user
-Write-Host "[10] Get shared notes as second user"
-$shared = Invoke-RestMethod -Uri "$BASE_URL/notes/shared-with-me" -Method Get -Headers @{Authorization="Bearer $token2"}
-if ($shared[0].note.id -eq $noteId) {
-    Write-Host "  -> OK, Note appears in shared list" -ForegroundColor Green
-} else {
-    Write-Host "  -> FAIL, Shared note not found" -ForegroundColor Red
+# Helper: unwrap API Resource { data: { ... } } or return raw
+function Unwrap {
+    param($Response)
+    if ($Response -and $Response.data) {
+        return $Response.data
+    }
+    return $Response
 }
 
-# 11. Delete note
-Write-Host "[11] Delete note (with password)"
-$deleteBody = '{"note_password":"secret123"}'
-Invoke-RestMethod -Uri "$BASE_URL/notes/$noteId" -Method Delete -Headers @{Authorization="Bearer $token"} -Body $deleteBody -ContentType "application/json" | Out-Null
-Write-Host "  -> OK, Note deleted" -ForegroundColor Green
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  ENHANCED FULL API TEST — NoteApp" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
 
-Write-Host "`n=== ALL TESTS PASSED! ===" -ForegroundColor Green
+$R1 = Get-Random
+$EMAIL = "test_$R1@test.com"
+$PWD = "12345678"
+$NOTE_PWD = "secret123"
+
+# ── 1. Register ──
+Write-Host "`n--- AUTH ---" -ForegroundColor Yellow
+Test-Step "1. Register" {
+    $body = @{name="TestUser"; email=$EMAIL; password=$PWD; password_confirmation=$PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/register" -Body $body
+    if (-not $r.token) { throw "No token returned" }
+    $script:TOKEN = $r.token
+    $script:USER_ID = $r.user.id
+}
+
+Test-Step "2. Login" {
+    $body = @{email=$EMAIL; password=$PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/login" -Body $body
+    if (-not $r.token) { throw "No token" }
+    $script:TOKEN = $r.token
+}
+
+Test-Step "3. Get /me" {
+    $r = ApiCall -Method Get -Url "/me" -Token $script:TOKEN
+    if ($r.email -ne $EMAIL) { throw "Email mismatch" }
+}
+
+# ── 4. Create note ──
+Write-Host "`n--- NOTES ---" -ForegroundColor Yellow
+Test-Step "4. Create note" {
+    $body = @{title="Secret Note"; content="Protected content"} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/notes" -Body $body -Token $script:TOKEN
+    $note = Unwrap $r
+    if (-not $note.id) { throw "No note ID in response: $($r | ConvertTo-Json)" }
+    $script:NOTE_ID = $note.id
+}
+
+Test-Step "5. List notes" {
+    $r = ApiCall -Method Get -Url "/notes" -Token $script:TOKEN
+    $notes = Unwrap $r
+    if ($notes.Count -eq 0) { throw "No notes" }
+}
+
+Test-Step "6. Get single note" {
+    $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
+    $note = Unwrap $r
+    if ($note.title -ne "Secret Note") { throw "Title mismatch: '$($note.title)'" }
+}
+
+Test-Step "7. Update note" {
+    $body = @{title="Updated Note"; content="Updated content"} | ConvertTo-Json
+    $r = ApiCall -Method Put -Url "/notes/$($script:NOTE_ID)" -Body $body -Token $script:TOKEN
+    $note = Unwrap $r
+    if ($note.title -ne "Updated Note") { throw "Title not updated: '$($note.title)'" }
+}
+
+# ── 8. Set password ──
+Write-Host "`n--- PASSWORD PROTECTED ---" -ForegroundColor Yellow
+Test-Step "8. Set password" {
+    $body = @{password=$NOTE_PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/set-password" -Body $body -Token $script:TOKEN
+    if ($r.is_protected -ne $true) { throw "Note not protected: $($r | ConvertTo-Json)" }
+}
+
+Test-Step "9. Owner bypass — get without password" {
+    $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
+    $note = Unwrap $r
+    if (-not $note.content) { throw "Owner should see content" }
+}
+
+Test-Step "10. Verify password" {
+    $body = @{note_password=$NOTE_PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/verify-password" -Body $body -Token $script:TOKEN
+    if ($r.message -notmatch "verified") { throw "Not verified: $($r | ConvertTo-Json)" }
+}
+
+Test-Step "11. Remove password" {
+    $body = @{current_password=$NOTE_PWD} | ConvertTo-Json
+    $r = ApiCall -Method Delete -Url "/notes/$($script:NOTE_ID)/password" -Body $body -Token $script:TOKEN
+    if ($r.is_protected -ne $false) { throw "Note still protected: $($r | ConvertTo-Json)" }
+}
+
+# ── 12. Labels ──
+Write-Host "`n--- LABELS ---" -ForegroundColor Yellow
+Test-Step "12. Create label" {
+    $body = @{name="Important"} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/labels" -Body $body -Token $script:TOKEN
+    if (-not $r.id) { throw "No label ID: $($r | ConvertTo-Json)" }
+    $script:LABEL_ID = $r.id
+}
+
+Test-Step "13. Attach label to note" {
+    $body = @{label_ids=@($script:LABEL_ID)} | ConvertTo-Json
+    $r = ApiCall -Method Put -Url "/notes/$($script:NOTE_ID)" -Body $body -Token $script:TOKEN
+    $note = Unwrap $r
+    if ($note.labels.Count -eq 0) { throw "Label not attached: $($r | ConvertTo-Json)" }
+}
+
+# ── 14. Sharing ──
+Write-Host "`n--- SHARING ---" -ForegroundColor Yellow
+$R2 = Get-Random
+$EMAIL2 = "share_$R2@test.com"
+
+Test-Step "14. Register second user" {
+    $body = @{name="ShareUser"; email=$EMAIL2; password=$PWD; password_confirmation=$PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/register" -Body $body
+    if (-not $r.token) { throw "No token" }
+    $script:TOKEN2 = $r.token
+    $script:USER2_ID = $r.user.id
+}
+
+Test-Step "15. Share note" {
+    $body = @{email=$EMAIL2; permission="read"} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/shares" -Body $body -Token $script:TOKEN
+    if ($r.email -ne $EMAIL2) { throw "Share not created: $($r | ConvertTo-Json)" }
+}
+
+Test-Step "16. Get shared notes as second user" {
+    $r = ApiCall -Method Get -Url "/notes/shared-with-me" -Token $script:TOKEN2
+    if ($r.Count -eq 0) { throw "No shared notes" }
+}
+
+Test-Step "17. Revoke share" {
+    $code = GetHttpCode -Method Delete -Url "/notes/$($script:NOTE_ID)/shares/$($script:USER2_ID)" -Token $script:TOKEN
+    if ($code -ne 200) { throw "Expected 200, got $code" }
+}
+
+# ── 18. Delete note ──
+Write-Host "`n--- DELETE ---" -ForegroundColor Yellow
+Test-Step "18. Delete note" {
+    $code = GetHttpCode -Method Delete -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
+    if ($code -ne 200) { throw "Expected 200, got $code" }
+}
+
+Test-Step "19. Verify note deleted" {
+    $code = GetHttpCode -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
+    if ($code -ne 404) { throw "Expected 404, got $code" }
+}
+
+# ── 20. Health check ──
+Write-Host "`n--- SYSTEM ---" -ForegroundColor Yellow
+Test-Step "20. Health check" {
+    $r = ApiCall -Method Get -Url "/health"
+    if ($r.status -ne "ok") { throw "Health check failed" }
+}
+
+# ── SUMMARY ──
+Write-Host "`n============================================" -ForegroundColor Cyan
+Write-Host "  TEST SUMMARY" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  ✅ PASS: $PASS" -ForegroundColor Green
+Write-Host "  ❌ FAIL: $FAIL" -ForegroundColor Red
+
+if ($FAIL -gt 0) {
+    Write-Host "`n❌ SOME TESTS FAILED!" -ForegroundColor Red
+    exit 1
+} else {
+    Write-Host "`n✅ ALL TESTS PASSED!" -ForegroundColor Green
+    exit 0
+}

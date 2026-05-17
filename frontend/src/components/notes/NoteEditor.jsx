@@ -72,7 +72,8 @@ export default function NoteEditor({
           }
           // If note is protected but we got content back (backend cache was valid),
           // unlock the editor without requiring password re-entry
-          if (note?.is_protected && n.content) {
+          // NOTE: Only unlock if initialPassword was provided (not for owners who bypass password)
+          if (initialPassword && note?.is_protected && n.content) {
             setLocked(false);
             setUnlockedOnce(true);
             unlockedOnceRef.current = true;
@@ -87,7 +88,10 @@ export default function NoteEditor({
           }
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error("Failed to fetch note:", err);
+        toast.error("Failed to load note content");
+      })
       .finally(() => setLoadingFull(false));
   }, [note?.id, initialPassword]);
 
@@ -104,6 +108,8 @@ export default function NoteEditor({
   // Password unlock state — check sessionStorage cache first
   const [locked, setLocked] = useState(() => {
     if (!note?.is_protected) return false;
+    // Owners never need password for their own notes (backend bypasses for owners)
+    if (!readOnly && !initialPassword) return false;
     // Check if password was cached in sessionStorage (from NotesPage)
     if (initialPassword) {
       notePasswordRef.current = initialPassword;
@@ -186,7 +192,7 @@ export default function NoteEditor({
           saved = await updateNote(id, saveData);
         }
         showSaveStatus("saved");
-        onSave(saved);
+        onSave?.(saved);
         return saved?.id;
       } catch (err) {
         // Handle session expiry — re-lock the editor
@@ -228,7 +234,7 @@ export default function NoteEditor({
         lastSavedRef.current = structuredClone(data);
         setDirty(false);
         showSaveStatus("saved");
-        onSave(saved);
+        onSave?.(saved);
         return id;
       } catch (err) {
         // Handle session expiry — re-lock the editor
@@ -567,7 +573,7 @@ export default function NoteEditor({
             is_protected: noteData?.is_protected,
           }}
           onClose={() => setShowShare(false)}
-          onUpdate={() => onSave({ ...noteData, id: noteId })}
+          onUpdate={() => onSave?.({ ...noteData, id: noteId })}
         />
       )}
 

@@ -13,7 +13,9 @@ class NoteResource extends JsonResource
         $passwordVerified = !empty($this->password_verified)
             || cache("note_pwd_{$this->id}_" . ($request->user()?->id ?? 'anon')) === true;
 
-        $canViewContent = !$this->password || $passwordVerified;
+        // Owner always can view content
+        $isOwner = $request->user()?->id === $this->user_id;
+        $canViewContent = !$this->password || $passwordVerified || $isOwner;
 
         return [
             'id'              => $this->id,

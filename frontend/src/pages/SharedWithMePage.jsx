@@ -177,6 +177,8 @@ export default function SharedWithMePage() {
               readOnly={openNote.permission === "read"}
               initialPassword={unlockedPasswords[openNote.id]}
               onClose={() => setOpenNote(null)}
+              onSave={() => {}} // shared notes: no-op save callback
+              labels={[]}
             />
           </div>
         </div>

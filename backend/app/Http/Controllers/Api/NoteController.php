@@ -159,8 +159,12 @@ class NoteController extends Controller
     public function setPassword(Request $request, Note $note)
     {
         $this->authorizeNote($note, $request->user(), 'owner');
-        $request->validate(['password' => 'required|min:4']);
-        $note->update(['password' => Hash::make($request->password)]);
+        $request->validate([
+            'password' => 'required_without:note_password|min:4',
+            'note_password' => 'required_without:password|min:4',
+        ]);
+        $password = $request->input('password', $request->input('note_password'));
+        $note->update(['password' => Hash::make($password)]);
         return response()->json(['is_protected' => true]);
     }
 

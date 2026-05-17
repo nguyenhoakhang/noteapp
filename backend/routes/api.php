@@ -20,9 +20,8 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
-// Email verification (signed URL)
+// Email verification (controller handles its own hash check)
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
-    ->middleware(['signed'])
     ->name('verification.verify');
     
 // Password reset
