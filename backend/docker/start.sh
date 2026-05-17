@@ -14,7 +14,6 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
-# Fallback: if vendor/ is missing (e.g., bind mount override), install at runtime
 if [ ! -d vendor ]; then
   echo "vendor/ not found, running composer install..."
   composer install --no-interaction --prefer-dist --no-dev --no-progress
@@ -24,7 +23,6 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-# Only generate APP_KEY if missing
 if ! grep -q '^APP_KEY=[A-Za-z0-9]' .env 2>/dev/null; then
   php artisan key:generate --force
 fi
@@ -33,12 +31,10 @@ if [ ! -L public/storage ]; then
   php artisan storage:link
 fi
 
-# Ensure storage framework directories exist (required for view cache, sessions, etc.)
 mkdir -p /var/www/storage/framework/{views,cache,sessions,testing}
 
 php artisan migrate --force
 
-# Clear any stale cached config (don't cache config in dev to avoid view path issues)
 php artisan config:clear 2>/dev/null || true
 
 exec php artisan serve --host=0.0.0.0 --port=8000

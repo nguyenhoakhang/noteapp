@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Relative path – sẽ được Vite proxy (dev) hoặc Nginx (prod) chuyển tiếp
 const api = axios.create({
   baseURL: '/api',
   timeout: 10000,

@@ -22,7 +22,6 @@ public function index(Request $request)
 {
     $user  = $request->user();
     $query = Note::where('user_id', $user->id)
-        // Eager load — ONE query mỗi relation thay vì N queries
         ->with([
             'labels:id,name',
             'shares.sharedWith:id,name,email',
@@ -57,7 +56,7 @@ public function index(Request $request)
         ->orderByRaw('is_pinned DESC')
         ->orderByRaw('CASE WHEN is_pinned = 1 THEN pinned_at END DESC')
         ->orderByDesc('created_at')
-        ->limit(100) // pagination giới hạn tải đầu
+        ->limit(100)
         ->get();
 
     return NoteResource::collection($notes);
@@ -221,22 +220,6 @@ public function removePassword(Request $request, Note $note)
         return response()->json($shares);
     }
 
-    // ── Helpers ──────────────────────────────────────────────
-
-// private function authorizeNote(Note $note, $user, string $require = 'read'): void
-// {
-//     if ($note->user_id === $user->id) return; // owner always allowed
-
-//     $share = $note->shares()->where('shared_with_id', $user->id)->first();
-
-//     if (!$share) abort(403, 'No access to this note');
-
-//     if ($require === 'owner') abort(403, 'Only the owner can perform this action');
-
-//     if ($require === 'edit' && $share->permission !== 'edit') {
-//         abort(403, 'You have read-only access to this note');
-//     }
-// }
 private function authorizeNote(Note $note, $user, string $require = 'read'): void
 {
     // Debug log

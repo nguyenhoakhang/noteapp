@@ -27,7 +27,6 @@ class LabelController extends Controller
         abort_if($label->user_id !== $request->user()->id, 403);
         $request->validate(['name' => 'required|string|max:50']);
 
-        // Renaming updates all linked notes automatically (label name stored in labels table)
         $label->update(['name' => $request->name]);
         return response()->json($label);
     }
@@ -37,9 +36,7 @@ class LabelController extends Controller
         if ($label->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        // Detach from notes (pivot rows deleted), label row deleted
-        // Notes themselves are NOT deleted
+        
         $label->notes()->detach();
         $label->delete();
 

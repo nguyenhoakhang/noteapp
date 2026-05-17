@@ -101,13 +101,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'Verification email sent']);
     }
 
-    // =========================
-    // Password Reset via OTP
-    // =========================
-
-    /**
-     * Step 1: Send OTP to email
-     */
     public function sendOtp(Request $request)
     {
         $request->validate([
@@ -126,7 +119,6 @@ class AuthController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        // Send email
         Mail::send('emails.otp', ['otp' => $otp], function ($m) use ($request) {
             $m->to($request->email)
               ->subject('Your password reset OTP');
@@ -135,9 +127,6 @@ class AuthController extends Controller
         return response()->json(['message' => 'OTP sent to your email']);
     }
 
-    /**
-     * Step 2: Verify OTP and return reset token
-     */
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -162,9 +151,6 @@ class AuthController extends Controller
         return response()->json(['reset_token' => $resetToken]);
     }
 
-    /**
-     * Step 3: Reset password using reset token
-     */
     public function resetWithOtp(Request $request)
     {
         $request->validate([

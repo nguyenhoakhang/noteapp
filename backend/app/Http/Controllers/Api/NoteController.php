@@ -290,10 +290,8 @@ class NoteController extends Controller
     {
         if (!$note->password) return null;
         
-        // ✅ OWNERS NEVER NEED PASSWORD — they own the note
         if ($note->user_id === $request->user()->id) return null;
         
-        // Check if password was previously verified via cache (verify-password endpoint)
         $cacheKey = "note_pwd_{$note->id}_" . $request->user()->id;
         if (cache()->has($cacheKey)) {
             return null;

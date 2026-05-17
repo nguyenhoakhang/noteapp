@@ -15,7 +15,7 @@ class AttachmentController extends Controller
     {
         abort_if($note->user_id !== $request->user()->id, 403);
 
-        // ✅ Password-protected notes require unlock for attachment upload
+        // Password-protected notes require unlock for attachment upload
         if ($note->password) {
             $cacheKey = "note_pwd_{$note->id}_" . $request->user()->id;
             $provided = $request->input('note_password');

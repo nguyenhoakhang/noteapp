@@ -9,8 +9,6 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 COPY . .
 
-# Install PHP dependencies at BUILD time (not runtime)
-# This avoids cross-filesystem performance issues on Windows/WSL2
 RUN composer install --no-interaction --prefer-dist --no-dev --no-progress
 
 RUN chmod +x docker/start.sh

@@ -7,10 +7,6 @@ use Illuminate\Support\Facades\Http;
 
 class LinkPreviewController extends Controller
 {
-    /**
-     * Fetch Open Graph / link preview data for a given URL.
-     * GET /api/link-preview?url=https://...
-     */
     public function preview(Request $request)
     {
         $request->validate(['url' => 'required|url']);
@@ -71,7 +67,6 @@ class LinkPreviewController extends Controller
 
     private function extractMeta(string $html, string $property): ?string
     {
-        // Try property="og:title" and name="description" formats
         $patterns = [
             '/<meta\s+[^>]*?(?:property|name)=["\']' . preg_quote($property, '/') . '["\']\s+content=["\']([^"\']*)["\'][^>]*?\/?>/i',
             '/<meta\s+[^>]*?content=["\']([^"\']*)["\'][^>]*?(?:property|name)=["\']' . preg_quote($property, '/') . '["\'][^>]*?\/?>/i',
