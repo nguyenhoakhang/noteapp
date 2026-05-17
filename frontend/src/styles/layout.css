@@ -16,6 +16,12 @@
     height: calc(100dvh - 48px);
 }
 
+@media (max-width: 480px) {
+    .app-body {
+        height: calc(100dvh - 44px);
+    }
+}
+
 /* ── Offline / loading banners ── */
 .offline-banner {
     background: var(--surface-2);
@@ -582,9 +588,37 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.85rem;
+    }
+
+    .navbar-user {
+        display: none;
+    }
+
+    .search-wrap {
+        max-width: none;
+    }
+
+    .search-input {
+        font-size: 0.82rem;
+        padding: 0.3rem 2rem 0.3rem 0.6rem;
+    }
+
     .notes-main {
         padding: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .notes-main {
+        padding: 0.75rem;
     }
 
     .prefs-page {
@@ -593,5 +627,124 @@
 
     .prefs-section {
         padding: 1rem;
+    }
+
+    .navbar {
+        padding: 0 0.5rem;
+        gap: 0.35rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.8rem;
+    }
+
+    .navbar-actions button,
+    .navbar-btn {
+        padding: 4px;
+    }
+
+    .nav-avatar-img,
+    .nav-avatar-initials {
+        width: 26px;
+        height: 26px;
+        font-size: 0.65rem;
+    }
+
+    .search-input {
+        font-size: 0.8rem;
+        padding: 0.25rem 1.8rem 0.25rem 0.5rem;
+    }
+
+    .search-clear {
+        right: 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .sidebar {
+        min-width: 240px;
+        width: 240px;
+    }
+
+    .sidebar-item {
+        font-size: 0.82rem;
+        padding: 0.4rem 0.55rem;
+    }
+
+    .notes-toolbar {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .notes-main {
+        padding: 0.5rem;
+    }
+
+    .navbar {
+        height: 44px;
+        padding: 0 0.4rem;
+        gap: 0.25rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.75rem;
+    }
+
+    .navbar-actions {
+        gap: 0.1rem;
+    }
+
+    .navbar-actions button,
+    .navbar-btn {
+        padding: 3px;
+    }
+
+    .search-input {
+        font-size: 0.78rem;
+        padding: 0.2rem 1.6rem 0.2rem 0.4rem;
+    }
+
+    .sidebar {
+        min-width: 220px;
+        width: 220px;
+        top: 44px;
+    }
+
+    .sidebar-item {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.5rem;
+    }
+
+    .sidebar-section-title {
+        font-size: 0.62rem;
+        padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    .notes-toolbar {
+        margin-bottom: 0.75rem;
+    }
+
+    .notes-heading {
+        font-size: 0.85rem;
+    }
+
+    .sort-select {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.35rem;
+    }
+
+    .sort-dir-btn {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.35rem;
+    }
+
+    .btn-primary-sm {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .offline-banner {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.75rem;
     }
 }

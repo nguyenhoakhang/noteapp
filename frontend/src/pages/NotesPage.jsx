@@ -175,6 +175,7 @@ export default function NotesPage() {
         color: s.color,
         is_pinned: s.is_pinned,
         is_protected: s.is_protected,
+        is_shared: true,
         created_at: s.note_updated,
         updated_at: s.note_updated,
         _sharedBy: s.shared_by,

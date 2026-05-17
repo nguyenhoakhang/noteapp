@@ -820,11 +820,81 @@
 }
 
 /* Responsive for components */
+@media (max-width: 768px) {
+    .share-modal {
+        max-width: 100%;
+        margin: 0 0.5rem;
+    }
+
+    .share-add-form {
+        flex-wrap: wrap;
+    }
+
+    .share-search-wrap {
+        min-width: 100%;
+        order: -1;
+    }
+
+    .share-perm-select {
+        flex: 1;
+    }
+
+    .share-add-form .btn-primary-sm {
+        flex-shrink: 0;
+    }
+}
+
 @media (max-width: 640px) {
     .otp-box { width: 40px; height: 50px; font-size: 1.25rem; }
     .auth-card { padding: 1.5rem 1.25rem; }
     .share-row { flex-wrap: wrap; }
     .share-controls { width: 100%; justify-content: flex-end; }
+
+    .auth-page {
+        padding: 1rem;
+    }
+
+    .auth-card {
+        padding: 1.25rem;
+        border-radius: var(--radius-lg);
+    }
+
+    .auth-title {
+        font-size: 1.1rem;
+    }
+
+    .auth-subtitle {
+        font-size: 0.82rem;
+    }
+
+    .btn-primary {
+        padding: 0.55rem;
+        font-size: 0.9rem;
+    }
+
+    .unlock-note-modal {
+        max-width: 100%;
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+
+    .prefs-section {
+        padding: 1rem;
+    }
+
+    .prefs-save-bar {
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        border-radius: var(--radius-lg);
+        padding: 0.6rem 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .prefs-unsaved-hint {
+        font-size: 0.75rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -836,6 +906,140 @@
     .modal {
         border-radius: 16px 16px 0 0;
         max-width: 100%;
+        padding: 1.25rem;
+    }
+
+    .modal-header h3 {
+        font-size: 0.9rem;
+    }
+
+    .modal-body p {
+        font-size: 0.82rem;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions .btn-primary-sm,
+    .modal-actions .btn-secondary,
+    .modal-actions .btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .share-modal {
+        max-height: 90dvh;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .share-list {
+        max-height: 200px;
+    }
+
+    .share-row {
+        padding: 0.4rem 0.5rem;
+        gap: 0.4rem;
+    }
+
+    .share-avatar-initial,
+    .share-avatar-img {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .share-name {
+        font-size: 0.8rem;
+    }
+
+    .share-email {
+        font-size: 0.68rem;
+    }
+
+    .perm-opt {
+        font-size: 0.68rem;
+        padding: 0.15rem 0.45rem;
+    }
+
+    .unlock-note-modal {
+        padding: 1.25rem;
+        margin: 0 0.5rem;
+    }
+
+    .unlock-icon {
+        font-size: 1.5rem;
+    }
+
+    .unlock-note-modal h3 {
+        font-size: 0.9rem;
+    }
+
+    .unlock-note-modal p {
+        font-size: 0.78rem;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+
+    .empty-icon {
+        font-size: 2rem;
+    }
+
+    .empty-state h3 {
+        font-size: 0.85rem;
+    }
+
+    .empty-state p {
+        font-size: 0.8rem;
+    }
+
+    .auth-card {
+        padding: 1rem;
+        border-radius: var(--radius-md);
+    }
+
+    .auth-logo {
+        font-size: 1.1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .auth-title {
+        font-size: 1rem;
+    }
+
+    .auth-subtitle {
+        font-size: 0.78rem;
+        margin-bottom: 1rem;
+    }
+
+    .auth-links {
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .otp-boxes {
+        gap: 0.35rem;
+    }
+
+    .otp-box {
+        width: 36px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select,
+    .form-control {
+        font-size: 0.85rem;
+        padding: 0.45rem 0.7rem;
+    }
+
+    .password-wrap .password-input {
+        font-size: 0.85rem;
+        padding: 0.45rem 2.2rem 0.45rem 0.7rem;
     }
 }
 
