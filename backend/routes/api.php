@@ -26,7 +26,7 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
     ->name('verification.verify');
     
 // Password reset
-Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.reset');
 Route::post('/reset-password',  [PasswordResetController::class, 'reset']);
 
 Route::get('/health', function () {

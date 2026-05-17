@@ -97,6 +97,10 @@ export default function NoteEditor({
   const [dirty, setDirty] = useState(false);
   const [isProtected, setIsProtected] = useState(note?.is_protected || false);
 
+  // Refs MUST be declared before any useState that references them
+  const notePasswordRef = useRef("");
+  const unlockedOnceRef = useRef(false);
+
   // Password unlock state — check sessionStorage cache first
   const [locked, setLocked] = useState(() => {
     if (!note?.is_protected) return false;
@@ -122,8 +126,6 @@ export default function NoteEditor({
   const [unlocking, setUnlocking] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [unlockedOnce, setUnlockedOnce] = useState(false);
-  const notePasswordRef = useRef("");
-  const unlockedOnceRef = useRef(false);
 
   // Attachments
   const [attachments, setAttachments] = useState(note?.attachments || []);
