@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import PasswordInput from "../components/PasswordInput";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function ForgotPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // OTP input boxes
   const handleOtpChange = (i, val) => {
@@ -41,14 +43,28 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
   };
 
+  const startCooldown = () => {
+    setResendCooldown(60);
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const sendOtp = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await api.post("/auth/otp/send", { email });
+      await api.post("/auth/otp/send", { email: email.trim().toLowerCase() });
       toast.success("OTP sent — check your email");
       setStep(2);
+      startCooldown();
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to send OTP");
     } finally {
@@ -179,12 +195,15 @@ export default function ForgotPasswordPage() {
               <button
                 type="button"
                 className="auth-link-btn"
+                disabled={resendCooldown > 0}
                 onClick={() => {
                   sendOtp({ preventDefault: () => {} });
                   setOtp(["", "", "", "", "", ""]);
                 }}
               >
-                Resend OTP
+                {resendCooldown > 0
+                  ? `Resend in ${resendCooldown}s`
+                  : "Resend OTP"}
               </button>
             </form>
           </>
@@ -198,28 +217,23 @@ export default function ForgotPasswordPage() {
               Choose a strong password (min. 8 characters)
             </p>
             <form onSubmit={resetPassword} className="auth-form">
-              <div className="form-group">
-                <label>New password</label>
-                <input
-                  type="password"
-                  value={password}
-                  required
-                  minLength={8}
-                  autoFocus
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
-                />
-              </div>
-              <div className="form-group">
-                <label>Confirm password</label>
-                <input
-                  type="password"
-                  value={confirm}
-                  required
-                  onChange={(e) => setConfirm(e.target.value)}
-                  placeholder="Repeat password"
-                />
-              </div>
+              <PasswordInput
+                label="New password"
+                value={password}
+                onChange={setPassword}
+                placeholder="Min. 8 characters"
+                showStrength
+                required
+                minLength={8}
+                autoFocus
+              />
+              <PasswordInput
+                label="Confirm password"
+                value={confirm}
+                onChange={setConfirm}
+                placeholder="Repeat password"
+                required
+              />
               {error && <p className="form-error">{error}</p>}
               <button
                 type="submit"

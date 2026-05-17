@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import toast from "react-hot-toast";
+import PasswordInput from "../components/PasswordInput";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -19,7 +20,10 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post("/reset-password", form);
+      await api.post("/reset-password", {
+        ...form,
+        email: form.email.trim().toLowerCase(),
+      });
       toast.success(
         "Password reset successful! Please login with your new password.",
       );
@@ -46,24 +50,20 @@ export default function ResetPasswordPage() {
               onChange={(e) => set("email", e.target.value)}
             />
           </div>
-          <div className="form-group">
-            <label>New password</label>
-            <input
-              type="password"
-              value={form.password}
-              required
-              onChange={(e) => set("password", e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label>Confirm password</label>
-            <input
-              type="password"
-              value={form.password_confirmation}
-              required
-              onChange={(e) => set("password_confirmation", e.target.value)}
-            />
-          </div>
+          <PasswordInput
+            label="New password"
+            value={form.password}
+            onChange={(v) => set("password", v)}
+            showStrength
+            required
+            minLength={8}
+          />
+          <PasswordInput
+            label="Confirm password"
+            value={form.password_confirmation}
+            onChange={(v) => set("password_confirmation", v)}
+            required
+          />
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? "Saving…" : "Set new password"}
           </button>

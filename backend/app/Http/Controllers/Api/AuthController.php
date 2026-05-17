@@ -82,11 +82,13 @@ class AuthController extends Controller
             return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?verified=error');
         }
 
-        if (!$user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+        if ($user->hasVerifiedEmail()) {
+            return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?verified=already');
         }
 
-        return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?verified=1');
+        $user->markEmailAsVerified();
+
+        return redirect(env('FRONTEND_URL', 'http://localhost:8080') . '/?verified=success');
     }
     
     public function resendVerification(Request $request)

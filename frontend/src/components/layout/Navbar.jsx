@@ -31,7 +31,7 @@ export default function Navbar({
   }, [user?.avatar]);
 
   const avatarSrc = user?.avatar
-    ? `http://localhost:8000/storage/${user.avatar}?t=${avatarVersion}`
+    ? `/storage/${user.avatar}?t=${avatarVersion}`
     : null;
 
   return (

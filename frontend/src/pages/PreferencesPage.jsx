@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import api from "../api/axios";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
+import PasswordInput from "../components/PasswordInput";
 
 const FONT_SIZES = ["small", "medium", "large"];
 const NOTE_COLORS = [
@@ -41,7 +42,7 @@ export default function PreferencesPage() {
 
   const fileRef = useRef();
   const [avatarPreview, setAvatarPreview] = useState(
-    user?.avatar ? `http://localhost:8000/storage/${user.avatar}` : null,
+    user?.avatar ? `/storage/${user.avatar}` : null,
   );
   const [avatarFile, setAvatarFile] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -84,15 +85,10 @@ export default function PreferencesPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Upload response:", data);
-
-      // ✅ Cập nhật store
-      updateUser({ avatar: data.avatar });
-
-      // ✅ Quan trọng: Gọi fetchMe để reload toàn bộ user data
+      // Reload full user data from server
       await useAuthStore.getState().fetchMe();
 
-      // ✅ Cập nhật preview
+      // Update preview with cache-busting
       setAvatarPreview(`/storage/${data.avatar}?t=${Date.now()}`);
 
       setAvatarFile(null);
@@ -291,36 +287,26 @@ export default function PreferencesPage() {
         <section className="prefs-section">
           <h2>Change password</h2>
           <form onSubmit={changePassword}>
-            <div className="form-group">
-              <label>Current password</label>
-              <input
-                type="password"
-                value={passwords.current_password}
-                required
-                onChange={(e) => setPwd("current_password", e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>New password</label>
-              <input
-                type="password"
-                value={passwords.password}
-                required
-                minLength={8}
-                onChange={(e) => setPwd("password", e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label>Confirm new password</label>
-              <input
-                type="password"
-                value={passwords.password_confirmation}
-                required
-                onChange={(e) =>
-                  setPwd("password_confirmation", e.target.value)
-                }
-              />
-            </div>
+            <PasswordInput
+              label="Current password"
+              value={passwords.current_password}
+              onChange={(v) => setPwd("current_password", v)}
+              required
+            />
+            <PasswordInput
+              label="New password"
+              value={passwords.password}
+              onChange={(v) => setPwd("password", v)}
+              showStrength
+              required
+              minLength={8}
+            />
+            <PasswordInput
+              label="Confirm new password"
+              value={passwords.password_confirmation}
+              onChange={(v) => setPwd("password_confirmation", v)}
+              required
+            />
             <button className="btn-primary-sm" type="submit" disabled={saving}>
               {saving ? "Saving…" : "Change password"}
             </button>

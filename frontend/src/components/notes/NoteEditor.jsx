@@ -101,12 +101,18 @@ export default function NoteEditor({
   const [locked, setLocked] = useState(() => {
     if (!note?.is_protected) return false;
     // Check if password was cached in sessionStorage (from NotesPage)
-    if (initialPassword) return false;
+    if (initialPassword) {
+      notePasswordRef.current = initialPassword;
+      unlockedOnceRef.current = true;
+      return false;
+    }
     // Check if backend cache is likely valid (within 1 hour of last verify)
     try {
       const stored = JSON.parse(sessionStorage.getItem("verified_note_passwords") || "{}");
       const entry = stored[note.id];
       if (entry && Date.now() - entry.verifiedAt < 55 * 60 * 1000) {
+        notePasswordRef.current = entry.password;
+        unlockedOnceRef.current = true;
         return false; // backend cache should still be valid
       }
     } catch {}
@@ -292,8 +298,22 @@ export default function NoteEditor({
   };
 
   const uploadFiles = async (files) => {
+    const fileArray = Array.from(files);
+    // Validate each file
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf", "text/plain"];
+    for (const f of fileArray) {
+      if (f.size > MAX_SIZE) {
+        toast.error(`"${f.name}" exceeds 10MB limit`);
+        return;
+      }
+      if (!allowedTypes.includes(f.type) && !f.type.startsWith("image/")) {
+        toast.error(`"${f.name}" has unsupported file type`);
+        return;
+      }
+    }
     const fd = new FormData();
-    Array.from(files).forEach((f) => fd.append("files[]", f));
+    fileArray.forEach((f) => fd.append("files[]", f));
     // Include note_password if unlocked
     if (unlockedOnceRef.current && notePasswordRef.current) {
       fd.append("note_password", notePasswordRef.current);
@@ -307,6 +327,7 @@ export default function NoteEditor({
       toast.error("Upload failed");
     }
   };
+
 
   const deleteAttachment = async (att) => {
     try {

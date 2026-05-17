@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 import api from '../api/axios'
+import { clearAll as clearPasswordSessions } from '../offline/sessionStore'
+import { clearCache } from '../offline/noteCache'
+import { clearQueue } from '../offline/syncQueue'
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -15,6 +18,10 @@ const useAuthStore = create((set) => ({
   logout: async () => {
     try { await api.post('/logout') } catch {}
     localStorage.removeItem('token')
+    // Clear all sensitive local data
+    clearPasswordSessions()
+    clearCache().catch(() => {})
+    clearQueue().catch(() => {})
     set({ user: null, token: null })
   },
 

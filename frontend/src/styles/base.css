@@ -200,6 +200,12 @@ body,
    100% { background-position: -200% 0; }
 }
 
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+}
+
+
 /* ══════════════════
    SHARED ANIMATIONS
    ══════════════════ */

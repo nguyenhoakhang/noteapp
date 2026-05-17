@@ -180,13 +180,18 @@ export default function NotesPage() {
         list = notes.filter(
           (n) =>
             n.title?.toLowerCase().includes(q) ||
-            n.content?.toLowerCase().includes(q),
+            (n.content_preview || n.content || "")?.toLowerCase().includes(q) ||
+            n.labels?.some((l) => l.name?.toLowerCase().includes(q)),
         );
       }
     }
 
-    // Apply sorting
+    // Apply sorting — pinned notes ALWAYS on top regardless of sort mode
     return [...list].sort((a, b) => {
+      // Pinned first
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+      // Then sort by selected criteria
       let cmp = 0;
       if (sortBy === "title") {
         cmp = (a.title || "").localeCompare(b.title || "");
@@ -233,14 +238,37 @@ export default function NotesPage() {
     fetchShared();
   }, []);
 
-  // Search / filter
+  // Search / filter — local-first: filter cached notes, only hit API if needed
   useEffect(() => {
-    if (!debouncedSearch.trim()) {
+    if (!debouncedSearch.trim() && !activeLabel) {
       setSearching(false);
       fetchNotesData();
       return;
     }
     setSearching(true);
+    // Try local filtering first
+    getAllCached().then((cached) => {
+      if (cached.length > 0) {
+        const q = debouncedSearch.toLowerCase();
+        let filtered = cached;
+        if (q) {
+          filtered = filtered.filter(
+            (n) =>
+              n.title?.toLowerCase().includes(q) ||
+              (n.content_preview || n.content || "")?.toLowerCase().includes(q) ||
+              n.labels?.some((l) => l.name?.toLowerCase().includes(q)),
+          );
+        }
+        if (activeLabel) {
+          filtered = filtered.filter((n) =>
+            n.labels?.some((l) => l.id === activeLabel),
+          );
+        }
+        setNotes(filtered);
+        setSearching(false);
+      }
+    });
+    // Also fetch from API in background for fresh results
     fetchNotesData().finally(() => setSearching(false));
   }, [debouncedSearch, activeLabel]);
 
@@ -295,6 +323,8 @@ export default function NotesPage() {
         label_ids: savedNote.label_ids,
       });
     }
+    // Refresh shared notes in case sharing changed
+    fetchShared();
   };
 
   const handleDelete = async (notePassword) => {

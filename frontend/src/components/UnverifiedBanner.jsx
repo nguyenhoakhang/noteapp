@@ -1,49 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/axios";
 import toast from "react-hot-toast";
 
 export default function UnverifiedBanner() {
-  const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const resend = async () => {
-    setSending(true);
+    setSent(false);
     try {
-      // Đổi thành endpoint chuẩn của Laravel Sanctum/Fortify
-      await api.post("/email/verification-notification");
-
+      await api.post("/email/resend");
       setSent(true);
-      toast.success("Verification email sent — check your inbox");
-
-      // Sau 60 giây cho phép gửi lại lần nữa nếu cần
-      setTimeout(() => setSent(false), 60000);
-    } catch (e) {
-      // Log lỗi ra console để đại ca dễ debug nếu vẫn 500
-      console.error("Resend Error:", e.response);
-      toast.error(e?.response?.data?.message || "Failed to send");
-    } finally {
-      setSending(false);
+      setCooldown(60);
+      toast.success("Verification email sent!");
+    } catch {
+      toast.error("Failed to resend");
     }
   };
 
-  if (sent)
-    return (
-      <div className="unverified-banner unverified-banner--sent">
-        <span role="img" aria-label="email">
-          📧
-        </span>{" "}
-        Verification email sent! Check your inbox (or spam).
-      </div>
-    );
-
   return (
-    <div className="unverified-banner">
-      <span role="img" aria-label="warning">
-        ⚠️
-      </span>{" "}
-      Your email is not verified.
-      <button onClick={resend} disabled={sending} className="resend-btn">
-        {sending ? "Sending…" : "Resend verification email"}
+    <div className={`unverified-banner ${sent ? "unverified-banner--sent" : ""}`}>
+      <span>
+        {sent
+          ? "📬 Verification email sent — check your inbox"
+          : "⚠️ Your email is not verified"}
+      </span>
+      <button
+        className="resend-btn"
+        onClick={resend}
+        disabled={cooldown > 0}
+      >
+        {cooldown > 0
+          ? `Resend in ${cooldown}s`
+          : sent
+            ? "Resend"
+            : "Resend verification"}
       </button>
     </div>
   );

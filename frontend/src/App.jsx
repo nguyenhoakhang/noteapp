@@ -75,12 +75,15 @@ function VerifiedToast() {
   const [params, setParams] = useSearchParams();
 
   useEffect(() => {
-    if (params.get("verified") === "1") {
+    const v = params.get("verified");
+    if (v === "success") {
       toast.success("Email verified! Your account is now active.");
       useAuthStore.getState().fetchMe();
       setParams({});
-    }
-    if (params.get("verified") === "error") {
+    } else if (v === "already") {
+      toast("Email was already verified.");
+      setParams({});
+    } else if (v === "error") {
       toast.error("Verification link invalid or expired.");
       setParams({});
     }

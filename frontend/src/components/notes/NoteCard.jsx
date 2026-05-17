@@ -23,9 +23,15 @@ const NoteCard = memo(function NoteCard({
     onDelete(note);
   };
 
-  // Better content preview: strip HTML, get meaningful text
+  // Better content preview: use content_preview if available (faster), else strip HTML
   const getPreview = () => {
     if (note.is_protected) return null;
+
+    // Use content_preview from server if available (already stripped)
+    if (note.content_preview) {
+      return note.content_preview.slice(0, 180);
+    }
+
     if (!note.content) return null;
 
     const text = note.content
@@ -37,6 +43,7 @@ const NoteCard = memo(function NoteCard({
     if (!text) return null;
     return text.slice(0, 180);
   };
+
 
   const preview = getPreview();
 

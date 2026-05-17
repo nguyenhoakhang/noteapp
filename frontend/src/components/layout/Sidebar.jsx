@@ -17,6 +17,7 @@ export default function Sidebar({
   const [editName, setEditName] = useState("");
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const createLabel = async (e) => {
     e.preventDefault();
@@ -44,14 +45,21 @@ export default function Sidebar({
     }
   };
 
-  const deleteLabel = async (label) => {
-    if (!confirm(`Delete label "${label.name}"?`)) return;
+  const deleteLabel = (label) => {
+    setConfirmDelete(label);
+  };
+
+  const confirmDeleteLabel = async () => {
+    if (!confirmDelete) return;
     try {
-      await api.delete(`/labels/${label.id}`);
-      onLabelsChange(labels.filter((l) => l.id !== label.id));
-      if (activeLabel === label.id) setActiveLabel(null);
+      await api.delete(`/labels/${confirmDelete.id}`);
+      onLabelsChange(labels.filter((l) => l.id !== confirmDelete.id));
+      if (activeLabel === confirmDelete.id) setActiveLabel(null);
+      setConfirmDelete(null);
+      toast.success(`Label "${confirmDelete.name}" deleted`);
     } catch {
       toast.error("Failed to delete");
+      setConfirmDelete(null);
     }
   };
 
@@ -150,6 +158,42 @@ export default function Sidebar({
           </div>
         ))}
       </aside>
+
+      {/* Delete confirmation modal */}
+      {confirmDelete && (
+        <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+          <div
+            className="modal"
+            style={{ maxWidth: "380px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-header-icon modal-header-icon--danger">
+                <Trash2 size={20} />
+              </div>
+              <h3>Delete label?</h3>
+              <button onClick={() => setConfirmDelete(null)} className="modal-close-btn">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                Delete label <strong>"{confirmDelete.name}"</strong>? Notes with this
+                label will not be deleted.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </button>
+              <button className="btn-danger" onClick={confirmDeleteLabel}>
+                <Trash2 size={14} />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
