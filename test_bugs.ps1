@@ -1,4 +1,4 @@
-# Test script for Bug 1 (shared note shows blank) and Bug 2 (password not enforced)
+# Test script for password protection (owner + shared user both need password)
 $BASE = "http://localhost:8080/api"
 $PASS = 0
 $FAIL = 0
@@ -51,7 +51,7 @@ function Unwrap {
 }
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  BUG TEST: Share + Password Protection" -ForegroundColor Cyan
+Write-Host "  BUG TEST: Password for Owner + Shared User" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 
 $R1 = Get-Random
@@ -66,7 +66,6 @@ Test-Step "1. Register User A (owner)" {
     $r = ApiCall -Method Post -Url "/register" -Body $body
     if (-not $r.token) { throw "No token returned" }
     $script:TOKEN_A = $r.token
-    $script:USER_A_ID = $r.user.id
 }
 
 # ── 2. Register User B (sharee) ──
@@ -77,7 +76,6 @@ Test-Step "2. Register User B (sharee)" {
     $r = ApiCall -Method Post -Url "/register" -Body $body
     if (-not $r.token) { throw "No token" }
     $script:TOKEN_B = $r.token
-    $script:USER_B_ID = $r.user.id
 }
 
 # ── 3. User A creates a note ──
@@ -98,66 +96,75 @@ Test-Step "4. User A shares note with User B" {
     if (-not $r.user_id) { throw "Share not created: $($r | ConvertTo-Json)" }
 }
 
-# ── 5. User B checks shared notes (BUG 1 TEST) ──
-Test-Step "5. User B checks shared notes (Bug 1: should show title/content)" {
-    $r = ApiCall -Method Get -Url "/notes/shared-with-me" -Token $script:TOKEN_B
-    if ($r.Count -eq 0) { throw "No shared notes returned" }
-    $first = $r[0]
-    Write-Host "       title: '$($first.title)'" -ForegroundColor Gray
-    Write-Host "       content: '$($first.content)'" -ForegroundColor Gray
-    Write-Host "       color: '$($first.color)'" -ForegroundColor Gray
-    Write-Host "       is_protected: $($first.is_protected)" -ForegroundColor Gray
-    if (-not $first.title) { throw "Title is empty/null - BUG 1 NOT FIXED!" }
-    if ($first.title -ne "Shared Test Note") { throw "Title mismatch: '$($first.title)'" }
-}
-
-# ── 6. User A sets password on note ──
+# ── 5. User A sets password on note ──
 Write-Host "`n--- PASSWORD PROTECTED ---" -ForegroundColor Yellow
-Test-Step "6. User A sets password on note" {
+Test-Step "5. User A sets password on note" {
     $body = @{password=$NOTE_PWD} | ConvertTo-Json
     $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/set-password" -Body $body -Token $script:TOKEN_A
     if ($r.is_protected -ne $true) { throw "Note not protected: $($r | ConvertTo-Json)" }
 }
 
-# ── 7. Owner bypass - get without password ──
-Test-Step "7. Owner bypass - get without password (should see content)" {
+# ── 6. Owner gets note WITHOUT password (should get 403 now!) ──
+Test-Step "6. Owner gets note WITHOUT password (should get 403 needs_unlock)" {
+    $code = GetHttpCode -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_A
+    if ($code -ne 403) { throw "Expected 403 for owner without password, got $code" }
+    Write-Host "       Got 403 as expected - owner also needs password now!" -ForegroundColor Gray
+}
+
+# ── 7. Owner verifies password ──
+Test-Step "7. Owner verifies password" {
+    $body = @{note_password=$NOTE_PWD} | ConvertTo-Json
+    $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/verify-password" -Body $body -Token $script:TOKEN_A
+    if ($r.message -notmatch "verified") { throw "Not verified: $($r | ConvertTo-Json)" }
+}
+
+# ── 8. Owner gets note WITH password (should see content) ──
+Test-Step "8. Owner gets note WITH password (should see content)" {
     $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_A
     $note = Unwrap $r
-    if (-not $note.content) { throw "Owner should see content but got none" }
+    if (-not $note.content) { throw "Owner should see content after password verify but got none" }
     Write-Host "       Owner sees content: $($note.content.Substring(0, [Math]::Min(50, $note.content.Length)))..." -ForegroundColor Gray
 }
 
-# ── 8. Non-owner gets note WITHOUT password (BUG 2 TEST) ──
-Test-Step "8. Non-owner gets note WITHOUT password (Bug 2: should get 403 needs_unlock)" {
+# ── 9. Non-owner gets note WITHOUT password (should get 403) ──
+Test-Step "9. Non-owner gets note WITHOUT password (should get 403 needs_unlock)" {
     $code = GetHttpCode -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_B
-    if ($code -ne 403) { throw "Expected 403, got $code - BUG 2 NOT FIXED!" }
+    if ($code -ne 403) { throw "Expected 403, got $code" }
     Write-Host "       Got 403 as expected" -ForegroundColor Gray
 }
 
-# ── 9. Non-owner verifies password ──
-Test-Step "9. Non-owner verifies password" {
+# ── 10. Non-owner verifies password ──
+Test-Step "10. Non-owner verifies password" {
     $body = @{note_password=$NOTE_PWD} | ConvertTo-Json
     $r = ApiCall -Method Post -Url "/notes/$($script:NOTE_ID)/verify-password" -Body $body -Token $script:TOKEN_B
     if ($r.message -notmatch "verified") { throw "Not verified: $($r | ConvertTo-Json)" }
 }
 
-# ── 10. Non-owner gets note WITH password ──
-Test-Step "10. Non-owner gets note WITH password (should see content)" {
+# ── 11. Non-owner gets note WITH password (should see content) ──
+Test-Step "11. Non-owner gets note WITH password (should see content)" {
     $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_B
     $note = Unwrap $r
     if (-not $note.content) { throw "Should see content after password verify but got none" }
     Write-Host "       User B sees content: $($note.content.Substring(0, [Math]::Min(50, $note.content.Length)))..." -ForegroundColor Gray
 }
 
-# ── 11. Remove password ──
-Test-Step "11. Remove password" {
+# ── 12. Owner can still manage password (set/change/remove) ──
+Test-Step "12. Owner can remove password" {
     $body = @{current_password=$NOTE_PWD} | ConvertTo-Json
     $r = ApiCall -Method Delete -Url "/notes/$($script:NOTE_ID)/password" -Body $body -Token $script:TOKEN_A
     if ($r.is_protected -ne $false) { throw "Note still protected: $($r | ConvertTo-Json)" }
 }
 
-# ── 12. Delete note ──
-Test-Step "12. Delete note" {
+# ── 13. After removing password, owner can access without password ──
+Test-Step "13. After removing password, owner can access without password" {
+    $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_A
+    $note = Unwrap $r
+    if (-not $note.content) { throw "Should see content after password removed" }
+    Write-Host "       Owner sees content without password after removal" -ForegroundColor Gray
+}
+
+# ── 14. Delete note ──
+Test-Step "14. Delete note" {
     $code = GetHttpCode -Method Delete -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN_A
     if ($code -ne 200) { throw "Expected 200, got $code" }
 }

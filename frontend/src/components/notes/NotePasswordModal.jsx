@@ -38,13 +38,13 @@ export default function NotePasswordModal({
     try {
       if (mode === "set") {
         await api.post(`/notes/${noteId}/password`, { password: newPw });
-        onChanged(true);
+        onChanged(true, newPw);
       } else if (mode === "change") {
         await api.put(`/notes/${noteId}/password`, {
           current_password: currentPw,
           password: newPw,
         });
-        onChanged(true);
+        onChanged(true, newPw);
       } else if (mode === "remove") {
         await api.delete(`/notes/${noteId}/password`, {
           data: { current_password: currentPw },

@@ -114,8 +114,6 @@ export default function NoteEditor({
   // Password unlock state — check sessionStorage cache first
   const [locked, setLocked] = useState(() => {
     if (!note?.is_protected) return false;
-    // Owners never need password for their own notes (backend bypasses for owners)
-    if (isOwner) return false;
     // Check if password was cached in sessionStorage (from NotesPage)
     if (initialPassword) {
       notePasswordRef.current = initialPassword;
@@ -372,9 +370,22 @@ export default function NoteEditor({
     }
   };
 
-  const handlePasswordChanged = (protectedState) => {
+  const handlePasswordChanged = (protectedState, newPassword) => {
     setIsProtected(protectedState);
     setNoteData((prev) => ({ ...prev, is_protected: protectedState }));
+    if (protectedState && newPassword) {
+      // Cache the password so owner doesn't get locked out immediately
+      notePasswordRef.current = newPassword;
+      unlockedOnceRef.current = true;
+      setUnlockedOnce(true);
+      setLocked(false);
+      // Also store in sessionStorage for future re-opens
+      try {
+        const stored = JSON.parse(sessionStorage.getItem("verified_note_passwords") || "{}");
+        stored[noteId] = { password: newPassword, verifiedAt: Date.now() };
+        sessionStorage.setItem("verified_note_passwords", JSON.stringify(stored));
+      } catch {}
+    }
     toast.success(protectedState ? "Password set" : "Password removed");
   };
 

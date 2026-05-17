@@ -16,10 +16,10 @@ function Test-Step {
     try {
         & $Script
         $script:PASS++
-        Write-Host "  ✅ $Name" -ForegroundColor Green
+        Write-Host "  [PASS] $Name" -ForegroundColor Green
     } catch {
         $script:FAIL++
-        Write-Host "  ❌ $Name" -ForegroundColor Red
+        Write-Host "  [FAIL] $Name" -ForegroundColor Red
         Write-Host "     $_" -ForegroundColor DarkRed
     }
 }
@@ -64,7 +64,7 @@ function Unwrap {
 }
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  ENHANCED FULL API TEST — NoteApp" -ForegroundColor Cyan
+Write-Host "  ENHANCED FULL API TEST - NoteApp" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 
 $R1 = Get-Random
@@ -72,7 +72,7 @@ $EMAIL = "test_$R1@test.com"
 $PWD = "12345678"
 $NOTE_PWD = "secret123"
 
-# ── 1. Register ──
+# --- 1. Register ---
 Write-Host "`n--- AUTH ---" -ForegroundColor Yellow
 Test-Step "1. Register" {
     $body = @{name="TestUser"; email=$EMAIL; password=$PWD; password_confirmation=$PWD} | ConvertTo-Json
@@ -94,7 +94,7 @@ Test-Step "3. Get /me" {
     if ($r.email -ne $EMAIL) { throw "Email mismatch" }
 }
 
-# ── 4. Create note ──
+# --- 4. Create note ---
 Write-Host "`n--- NOTES ---" -ForegroundColor Yellow
 Test-Step "4. Create note" {
     $body = @{title="Secret Note"; content="Protected content"} | ConvertTo-Json
@@ -123,7 +123,7 @@ Test-Step "7. Update note" {
     if ($note.title -ne "Updated Note") { throw "Title not updated: '$($note.title)'" }
 }
 
-# ── 8. Set password ──
+# --- 8. Set password ---
 Write-Host "`n--- PASSWORD PROTECTED ---" -ForegroundColor Yellow
 Test-Step "8. Set password" {
     $body = @{password=$NOTE_PWD} | ConvertTo-Json
@@ -131,10 +131,9 @@ Test-Step "8. Set password" {
     if ($r.is_protected -ne $true) { throw "Note not protected: $($r | ConvertTo-Json)" }
 }
 
-Test-Step "9. Owner bypass — get without password" {
-    $r = ApiCall -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
-    $note = Unwrap $r
-    if (-not $note.content) { throw "Owner should see content" }
+Test-Step "9. Owner gets note WITHOUT password (should get 403 needs_unlock)" {
+    $code = GetHttpCode -Method Get -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
+    if ($code -ne 403) { throw "Expected 403 for owner without password, got $code" }
 }
 
 Test-Step "10. Verify password" {
@@ -149,7 +148,7 @@ Test-Step "11. Remove password" {
     if ($r.is_protected -ne $false) { throw "Note still protected: $($r | ConvertTo-Json)" }
 }
 
-# ── 12. Labels ──
+# --- 12. Labels ---
 Write-Host "`n--- LABELS ---" -ForegroundColor Yellow
 Test-Step "12. Create label" {
     $body = @{name="Important"} | ConvertTo-Json
@@ -165,7 +164,7 @@ Test-Step "13. Attach label to note" {
     if ($note.labels.Count -eq 0) { throw "Label not attached: $($r | ConvertTo-Json)" }
 }
 
-# ── 14. Sharing ──
+# --- 14. Sharing ---
 Write-Host "`n--- SHARING ---" -ForegroundColor Yellow
 $R2 = Get-Random
 $EMAIL2 = "share_$R2@test.com"
@@ -194,7 +193,7 @@ Test-Step "17. Revoke share" {
     if ($code -ne 200) { throw "Expected 200, got $code" }
 }
 
-# ── 18. Delete note ──
+# --- 18. Delete note ---
 Write-Host "`n--- DELETE ---" -ForegroundColor Yellow
 Test-Step "18. Delete note" {
     $code = GetHttpCode -Method Delete -Url "/notes/$($script:NOTE_ID)" -Token $script:TOKEN
@@ -206,24 +205,24 @@ Test-Step "19. Verify note deleted" {
     if ($code -ne 404) { throw "Expected 404, got $code" }
 }
 
-# ── 20. Health check ──
+# --- 20. Health check ---
 Write-Host "`n--- SYSTEM ---" -ForegroundColor Yellow
 Test-Step "20. Health check" {
     $r = ApiCall -Method Get -Url "/health"
     if ($r.status -ne "ok") { throw "Health check failed" }
 }
 
-# ── SUMMARY ──
+# --- SUMMARY ---
 Write-Host "`n============================================" -ForegroundColor Cyan
 Write-Host "  TEST SUMMARY" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  ✅ PASS: $PASS" -ForegroundColor Green
-Write-Host "  ❌ FAIL: $FAIL" -ForegroundColor Red
+Write-Host "  PASS: $PASS" -ForegroundColor Green
+Write-Host "  FAIL: $FAIL" -ForegroundColor Red
 
 if ($FAIL -gt 0) {
-    Write-Host "`n❌ SOME TESTS FAILED!" -ForegroundColor Red
+    Write-Host "`nSOME TESTS FAILED!" -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "`n✅ ALL TESTS PASSED!" -ForegroundColor Green
+    Write-Host "`nALL TESTS PASSED!" -ForegroundColor Green
     exit 0
 }

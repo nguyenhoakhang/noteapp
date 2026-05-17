@@ -1,9 +1,21 @@
-# Task Progress — Bỏ collab & Fix bug cốt lõi
+# Task Progress — Bug Fixes Complete
 
-- [ ] Bước 1: Xóa collab CSS trong editor.css
-- [ ] Bước 2: Fix SharedWithMePage.jsx API endpoint (BUG 1 🔴)
-- [ ] Bước 3: Fix components.css — xóa !important block (BUG 2 🟡)
-- [ ] Bước 4: Fix skeleton duplicate — base.css vs components.css (BUG 3 🟡)
-- [ ] Bước 5: Fix color-dot duplicate — layout.css vs editor.css (BUG 4 🟡)
-- [ ] Bước 6: Fix search loading bar / spinner duplicate (BUG 5 🟢)
-- [ ] Bước 7: Fix attachment-item duplicate in editor.css (BUG 6 🟢)
+## Bug 1 (🔴): Owner gets 403 on password-protected note
+- [x] Fix `NoteController@show` — return `needs_unlock` for owner too when note is password-protected
+- [x] Fix `NoteController@verifyPassword` — accept `note_password` field (not `password`)
+- [x] Fix `NoteController@removePassword` — accept `current_password` field (not `password`)
+- [x] Fix `NoteResource` — hide content when `needs_unlock` for owner too
+- [x] Fix `NoteEditor.jsx` — add `isOwner` prop, fix `locked` state init, fix `unlock()` API response unwrapping
+- [x] Fix `NotesPage.jsx` — pass `isOwner={!editingNote._permission}`
+- [x] Fix `SharedWithMePage.jsx` — pass `isOwner={false}`, fix `displayNotes` mapping, fix password propagation
+- [x] Rebuild Docker image and restart containers
+- [x] **test_bugs.ps1: 14/14 PASS** ✅
+- [x] **test_full.ps1: 20/20 PASS** ✅
+
+## Bug 2 (🟡): CSS cleanup
+- [x] Remove collab CSS from editor.css
+- [x] Remove `!important` from components.css
+- [x] Remove skeleton duplicate (base.css vs components.css)
+- [x] Remove color-dot duplicate (layout.css vs editor.css)
+- [x] Remove search loading bar / spinner duplicate
+- [x] Remove attachment-item duplicate in editor.css

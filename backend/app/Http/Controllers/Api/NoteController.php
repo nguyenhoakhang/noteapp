@@ -288,22 +288,30 @@ class NoteController extends Controller
      */
     private function checkNotePassword(Request $request, Note $note)
     {
-        if (!$note->password) return null;
+        \Log::debug('checkNotePassword called', [
+            'note_id' => $note->id,
+            'has_password' => !empty($note->password),
+            'user_id' => $request->user()?->id,
+            'has_note_password_param' => $request->has('note_password'),
+        ]);
         
-        if ($note->user_id === $request->user()->id) return null;
+        if (!$note->password) return null;
         
         $cacheKey = "note_pwd_{$note->id}_" . $request->user()->id;
         if (cache()->has($cacheKey)) {
+            \Log::debug('checkNotePassword: cache hit', ['cacheKey' => $cacheKey]);
             return null;
         }
         
         $provided = $request->input('note_password');
         if (!$provided || !Hash::check($provided, $note->password)) {
+            \Log::debug('checkNotePassword: returning 403 needs_unlock');
             return response()->json([
                 'message'      => 'Note password required',
                 'needs_unlock' => true,
             ], 403);
         }
+        \Log::debug('checkNotePassword: password matched');
         return null;
     }
 }
