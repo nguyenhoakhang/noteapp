@@ -1,5 +1,9 @@
 # NoteApp — Final Project
 
+**Team Members:**
+- **Nguyen Hoa Khang** — 524H0098
+- **Ly Gia Luan** — 524H0109
+
 A full-stack note-taking application with rich text editing, password-protected notes, sharing with permissions, labels, offline PWA support, and dark/light mode.
 
 **Tech Stack:** Laravel 13 (backend) + React 19 (frontend) + MySQL 8 + Nginx + Docker
@@ -15,20 +19,16 @@ A full-stack note-taking application with rich text editing, password-protected 
 - [Features Overview](#features-overview)
 - [Optional Features (Extra Credit)](#optional-features-extra-credit)
 - [API Endpoints](#api-endpoints)
-- [Testing](#testing)
 - [Architecture](#architecture)
-- [Environment Variables](#environment-variables)
-- [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Quick Start (Docker)
 
-**Prerequisites:** Docker Desktop (or Docker Compose v2)
+**Prerequisites:** Docker Desktop
 
 ```bash
-# 1. Clone the project
-git clone <repo-url> noteapp
+# 1. Navigate to the project directory
 cd noteapp
 
 # 2. Start all services (build + run)
@@ -42,11 +42,10 @@ docker compose up -d --build
 > - Generates `APP_KEY`
 > - Creates `storage:link`
 > - Runs `migrate --force`
+> - Runs `db:seed --force` (demo data)
 > - Clears config cache
 
-**Wait ~60 seconds** for all services to be ready, then open:
-
-**http://localhost:8080**
+**Wait ~30 seconds** for all services to be ready, then open: **http://localhost:8080**
 
 ### Stopping
 
@@ -76,6 +75,7 @@ composer install
 php artisan key:generate
 php artisan storage:link
 php artisan migrate
+php artisan db:seed
 
 # Start dev server
 php artisan serve --host=0.0.0.0 --port=8000
@@ -144,7 +144,6 @@ If you need to reset the demo data:
 ```bash
 docker compose exec backend php artisan db:seed --force
 ```
-
 
 ---
 
@@ -276,53 +275,6 @@ All API endpoints are prefixed with `/api`.
 
 ---
 
-## Testing
-
-All test scripts are in the project root and require running Docker containers.
-
-### 1. Docker Deployment Verification
-
-Checks that all config files, Dockerfiles, and startup scripts are correctly structured:
-
-```powershell
-.\docker_test.ps1
-```
-
-### 2. Full API Test
-
-Tests all API endpoints end-to-end (auth, notes, password protection, labels, sharing, delete):
-
-```powershell
-.\test_full.ps1
-```
-
-### 3. Bug-Specific Test
-
-Tests the password protection flow for both owner and shared users:
-
-```powershell
-.\test_bugs.ps1
-```
-
-### 4. Complete Test Suite
-
-Combines Docker verification + API testing + response time benchmarks:
-
-```powershell
-.\complete_test_suite.ps1
-```
-
-### Test Results (Verified)
-
-| Test Suite               | Tests | Status |
-|--------------------------|-------|--------|
-| `docker_test.ps1`        | 25    | ✅ All PASS |
-| `test_full.ps1`          | 20    | ✅ All PASS |
-| `test_bugs.ps1`          | 14    | ✅ All PASS |
-| `complete_test_suite.ps1`| 40+   | ✅ All PASS |
-
----
-
 ## Architecture
 
 ```
@@ -359,80 +311,6 @@ frontend (React 19 + Vite 8)
 
 ---
 
-## Environment Variables
-
-### Backend (`backend/.env.example`)
-
-| Variable                  | Default Value                  | Description                    |
-|---------------------------|--------------------------------|--------------------------------|
-| `APP_NAME`                | NoteApp                        | Application name               |
-| `APP_ENV`                 | local                          | Environment                    |
-| `APP_DEBUG`               | true                           | Debug mode                     |
-| `APP_URL`                 | http://localhost:8080          | Application URL                |
-| `DB_HOST`                 | mysql                          | MySQL host (Docker service)    |
-| `DB_PORT`                 | 3306                           | MySQL port                     |
-| `DB_DATABASE`             | noteapp                        | Database name                  |
-| `DB_USERNAME`             | noteapp                        | Database user                  |
-| `DB_PASSWORD`             | noteapp                        | Database password              |
-| `FRONTEND_URL`            | http://localhost:5173          | Frontend URL for CORS          |
-| `SANCTUM_STATEFUL_DOMAINS`| localhost:5173,localhost:8080  | Sanctum stateful domains       |
-| `MAIL_MAILER`             | smtp                           | Mail driver                    |
-| `MAIL_HOST`               | mailpit                        | SMTP host (Docker service)     |
-| `MAIL_PORT`               | 1025                           | SMTP port                      |
-
-### Frontend (`frontend/.env`)
-
-| Variable         | Default Value                 | Description                    |
-|------------------|-------------------------------|--------------------------------|
-| `VITE_API_URL`   | http://localhost:8080/api     | API base URL (via Nginx proxy) |
-
----
-
-## Troubleshooting
-
-### "Connection refused" when accessing http://localhost:8080
-
-Wait ~60 seconds for all services to start. Check container status:
-
-```bash
-docker compose ps
-```
-
-### Backend changes not taking effect
-
-The backend code is baked into the Docker image. Rebuild and restart:
-
-```bash
-docker compose build backend
-docker compose up -d
-```
-
-### MySQL connection errors
-
-Check that MySQL is healthy:
-
-```bash
-docker compose logs mysql
-```
-
-### Frontend not loading
-
-Check frontend logs:
-
-```bash
-docker compose logs frontend
-```
-
-### Email not sending
-
-Check Mailpit UI at http://localhost:8025. Emails are captured by Mailpit and not actually sent.
-
-### "No token" on API calls
-
-Make sure to include the `Authorization: Bearer <token>` header. Tokens are obtained from `/api/login` or `/api/register`.
-
----
-
 ## Project Structure
 
 ```
@@ -440,10 +318,6 @@ noteapp/
 ├── docker-compose.yml       # Docker Compose configuration
 ├── README.md                # This file
 ├── README.txt               # Plain text version of this file
-├── docker_test.ps1          # Docker deployment verification
-├── test_full.ps1            # Full API test suite
-├── test_bugs.ps1            # Bug-specific test (password protection)
-├── complete_test_suite.ps1  # Combined test suite
 ├── backend/                 # Laravel application
 │   ├── Dockerfile
 │   ├── docker/start.sh      # Startup script (DB wait, migrations, etc.)
