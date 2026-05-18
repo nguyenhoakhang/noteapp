@@ -117,15 +117,34 @@ Requires MySQL running on localhost:3306 with database `noteapp`, user `noteapp`
 
 ## Pre-loaded Test Accounts
 
-There are **no pre-loaded accounts** — the database is fresh on each deployment. Use the registration form to create accounts:
+The database is automatically seeded with demo data on first deployment. Use these accounts to log in:
 
-| Field                  | Example Value          |
-|------------------------|------------------------|
-| Name                   | Test User              |
-| Email                  | test@example.com       |
-| Password               | 12345678               |
+| Account | Email                | Password   | Notes & Data                                                                 |
+|---------|----------------------|------------|------------------------------------------------------------------------------|
+| User A  | `userA@example.com`  | `password` | 3 notes (1 pinned, 1 password-protected with password `secret123`), 3 labels |
+| User B  | `userB@example.com`  | `password` | 2 notes (1 pinned), 3 labels, 1 shared note from User A (read-only)          |
 
-**For testing sharing:** Register two accounts (User A and User B) with different emails.
+### Demo Data Details
+
+**User A's notes:**
+1. **Welcome to NoteApp** (pinned, yellow) — Rich text demo with formatting
+2. **Shopping List** (green) — Simple checklist
+3. **Secret Note** (pink, password: `secret123`) — Password-protected note
+
+**User B's notes:**
+1. **Project Alpha** (pinned, blue) — Project plan with numbered list
+2. **Study Notes** (orange) — Database design study material
+
+**Sharing:** User A's "Welcome to NoteApp" is shared with User B (read-only permission).
+
+### Re-running the Seeder
+
+If you need to reset the demo data:
+
+```bash
+docker compose exec backend php artisan db:seed --force
+```
+
 
 ---
 

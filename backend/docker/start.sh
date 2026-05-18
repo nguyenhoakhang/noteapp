@@ -35,6 +35,9 @@ mkdir -p /var/www/storage/framework/{views,cache,sessions,testing}
 
 php artisan migrate --force
 
+php artisan db:seed --force
+
 php artisan config:clear 2>/dev/null || true
+
 
 exec php artisan serve --host=0.0.0.0 --port=8000

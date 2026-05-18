@@ -1,5 +1,10 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from "react";
-import { useEditor, EditorContent, ReactNodeViewRenderer } from "@tiptap/react";
+import {
+  useEditor,
+  EditorContent,
+  ReactNodeViewRenderer,
+  NodeViewWrapper,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
@@ -9,13 +14,12 @@ import Placeholder from "@tiptap/extension-placeholder";
 import CodeBlock from "@tiptap/extension-code-block";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { Node } from "@tiptap/core";
 
 import EditorToolbar from "./EditorToolbar";
 import LinkPreview from "./LinkPreview";
 import api from "../../api/axios";
 import toast from "react-hot-toast";
-import useAuthStore from "../../store/authStore";
+
 
 // ── Custom Image Node View with delete button ──
 function ImageNodeView({ node, getPos, editor }) {
@@ -28,7 +32,7 @@ function ImageNodeView({ node, getPos, editor }) {
   }, [editor, getPos, node.nodeSize]);
 
   return (
-    <div className="img-wrapper" contentEditable={false}>
+    <NodeViewWrapper as="div" className="img-wrapper" contentEditable={false}>
       <img src={node.attrs.src} alt={node.attrs.alt || ""} />
       {editor.isEditable && (
         <button
@@ -40,9 +44,10 @@ function ImageNodeView({ node, getPos, editor }) {
           ×
         </button>
       )}
-    </div>
+    </NodeViewWrapper>
   );
 }
+
 
 // ── Custom Image extension with NodeView ──
 const CustomImage = Image.extend({
@@ -51,17 +56,27 @@ const CustomImage = Image.extend({
   },
 });
 
+
 export default function RichNoteEditor({
   noteId,
   content,
   readOnly,
   onChange,
   onImageUploaded,
+  onImageDeleted,
 }) {
-  const { user } = useAuthStore();
-  const token = localStorage.getItem("token");
   const fileRef = useRef();
   const [isDragging, setIsDragging] = useState(false);
+  const prevImageSrcs = useRef(new Set());
+
+  // Helper: lấy tất cả src ảnh trong doc hiện tại
+  const getImageSrcs = useCallback((doc) => {
+    const srcs = new Set();
+    doc.descendants((node) => {
+      if (node.type.name === "image") srcs.add(node.attrs.src);
+    });
+    return srcs;
+  }, []);
 
   // Initialize editor
   const editor = useEditor({
@@ -83,6 +98,17 @@ export default function RichNoteEditor({
     editable: !readOnly,
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML());
+
+      // Detect deleted images
+      if (onImageDeleted) {
+        const currentSrcs = getImageSrcs(editor.state.doc);
+        prevImageSrcs.current.forEach((src) => {
+          if (!currentSrcs.has(src)) {
+            onImageDeleted(src);
+          }
+        });
+        prevImageSrcs.current = currentSrcs;
+      }
     },
   });
 
@@ -90,15 +116,16 @@ export default function RichNoteEditor({
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content || "");
+      // Sync lại prevImageSrcs sau khi setContent
+      prevImageSrcs.current = getImageSrcs(editor.state.doc);
     }
-  }, [editor, content]);
+  }, [editor, content, getImageSrcs]);
 
   // Upload image and insert into editor
   const insertImage = useCallback(
     async (file) => {
       if (!file || !file.type.startsWith("image/")) return;
 
-      // Store base64 src for later replacement
       let base64Src = null;
 
       // Instant preview via base64
@@ -110,6 +137,8 @@ export default function RichNoteEditor({
           .focus()
           .setImage({ src: base64Src, alt: file.name })
           .run();
+        // Track ảnh preview ngay để không bị detect là "deleted"
+        prevImageSrcs.current = getImageSrcs(editor.state.doc);
       };
       reader.readAsDataURL(file);
 
@@ -124,18 +153,21 @@ export default function RichNoteEditor({
           const url = `/storage/${data[0].path}`;
           onImageUploaded?.(data[0]);
 
-          // Replace base64 preview with server URL so it survives F5
+          // Replace base64 preview với server URL
           if (base64Src && editor) {
             editor.state.doc.descendants((node, pos) => {
-              if (
-                node.type.name === "image" &&
-                node.attrs.src === base64Src
-              ) {
-                editor
-                  .chain()
-                  .setTextSelection(pos)
-                  .updateAttributes("image", { src: url })
-                  .run();
+              if (node.type.name === "image" && node.attrs.src === base64Src) {
+                editor.commands.command(({ tr }) => {
+                  tr.setNodeMarkup(pos, null, {
+                    ...node.attrs,
+                    src: url,
+                    alt: node.attrs.alt || file.name,
+                  });
+                  return true;
+                });
+                // Sync prevImageSrcs: đổi base64 → server url
+                prevImageSrcs.current.delete(base64Src);
+                prevImageSrcs.current.add(url);
                 return false;
               }
             });
@@ -145,7 +177,7 @@ export default function RichNoteEditor({
         }
       }
     },
-    [editor, noteId, onImageUploaded],
+    [editor, noteId, onImageUploaded, getImageSrcs],
   );
 
   // Paste image from clipboard
@@ -180,7 +212,6 @@ export default function RichNoteEditor({
     const urlRegex = /https?:\/\/[^\s<>"']+/gi;
     const matches = content.match(urlRegex);
     if (!matches) return [];
-    // Deduplicate and limit to 3 previews
     return [...new Set(matches)].slice(0, 3);
   }, [content]);
 
@@ -204,7 +235,6 @@ export default function RichNoteEditor({
         onPaste={handlePaste}
       />
 
-      {/* Link previews — rendered below editor content */}
       {linkUrls.length > 0 && (
         <div className="link-previews">
           {linkUrls.map((url) => (

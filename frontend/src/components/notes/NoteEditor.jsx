@@ -474,7 +474,14 @@ export default function NoteEditor({
               readOnly={readOnly || locked}
               onChange={handleContentChange}
               onImageUploaded={(att) => setAttachments((a) => [...a, att])}
+              onImageDeleted={(src) => {
+                // Khi ảnh bị xóa khỏi editor, tìm attachment tương ứng và xóa
+                const path = src.replace("/storage/", "");
+                const att = attachments.find((a) => a.path === path);
+                if (att) deleteAttachment(att);
+              }}
             />
+
           </div>
 
           {/* Color picker */}
